@@ -66,12 +66,14 @@ async def http_exception_handler(
     request: Request, exc: HTTPException
 ) -> JSONResponse:
     """Handle HTTP exceptions with structured error response."""
+    # Generate a request_id for error tracking
+    error_request_id = uuid4()
     error_response = ErrorResponse(
         error=ErrorDetail(
             code=f"HTTP_{exc.status_code}",
             message=str(exc.detail),
         ),
-        request_id=None,
+        request_id=error_request_id,
     )
     return JSONResponse(
         status_code=exc.status_code,
@@ -141,6 +143,7 @@ async def create_plan(
         repo_name=request.repository.repo,
         repo_ref=request.repository.ref,
         user_id=auth.user_id,
+        outcome="pending",
     )
 
     # Step 1: Fetch context using context driver
@@ -152,6 +155,9 @@ async def create_plan(
             "plan_request_context_failure",
             request_id=str(request_id),
             repository=repo_str,
+            repo_owner=request.repository.owner,
+            repo_name=request.repository.repo,
+            repo_ref=request.repository.ref,
             user_id=auth.user_id,
             error=str(e),
             outcome="failure",
@@ -172,6 +178,9 @@ async def create_plan(
             "plan_request_context_failure",
             request_id=str(request_id),
             repository=repo_str,
+            repo_owner=request.repository.owner,
+            repo_name=request.repository.repo,
+            repo_ref=request.repository.ref,
             user_id=auth.user_id,
             error=str(e),
             outcome="failure",
@@ -204,6 +213,9 @@ async def create_plan(
             "plan_request_engine_failure",
             request_id=str(request_id),
             repository=repo_str,
+            repo_owner=request.repository.owner,
+            repo_name=request.repository.repo,
+            repo_ref=request.repository.ref,
             user_id=auth.user_id,
             error=str(e),
             outcome="failure",
@@ -227,6 +239,9 @@ async def create_plan(
     engine_status = engine_result.get("status", "pending")
     status = "completed" if engine_status == "success" else engine_status
 
+    # Determine outcome based on the computed status
+    outcome = "success" if status == "completed" else "failure"
+
     logger.info(
         "plan_request_completed",
         request_id=str(request_id),
@@ -236,7 +251,7 @@ async def create_plan(
         repo_name=request.repository.repo,
         repo_ref=request.repository.ref,
         user_id=auth.user_id,
-        outcome="success",
+        outcome=outcome,
         status=status,
     )
 
