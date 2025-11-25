@@ -166,7 +166,42 @@ git push origin v0.1.0
 - Environment-based configuration with safe defaults
 - Extensible context driver architecture with stub implementation
 - Extensible prompt engine architecture with stub implementation
+- Extensible plan validator architecture for validating prompt engine output
 - `/v1/plan` endpoint for creating planning requests
 - `/v1/debug/context` endpoint for debugging context fetching
 - Makefile with install/lint/test/run targets
 - Documentation for environment variables and Docker usage
+
+## Plan Validator Module
+
+The `plan_validator` module provides the abstraction for validating candidate payloads from the prompt engine before they are serialized and sent to clients.
+
+### Components
+
+- **`PlanValidationFailure`**: Exception with `code` (machine-readable) and `message` (human-readable) attributes
+- **`PlanValidator`**: Protocol defining `validate(ctx, candidate_payload) -> dict`
+- **`StubPlanValidator`**: Implementation enforcing `dict` payloads with `request_id` and `plan_version` keys
+
+### Validator Expectations
+
+When implementing a custom validator:
+
+1. Accept `PlanningContext` and a candidate payload (any type)
+2. Return the validated payload as a `dict` if valid
+3. Raise `PlanValidationFailure` with descriptive `code` and `message` on failure
+4. Use well-known error codes for common failures:
+   - `INVALID_PAYLOAD_TYPE`: Payload is not the expected type
+   - `MISSING_REQUEST_ID`: Required `request_id` key is missing
+   - `MISSING_PLAN_VERSION`: Required `plan_version` key is missing
+   - `INVALID_REQUEST_ID_TYPE`: `request_id` is not a string
+   - `INVALID_PLAN_VERSION_TYPE`: `plan_version` is not a string
+
+### Integration
+
+The validator sits in the pipeline between the PromptEngine and response serialization:
+
+```
+Request → ContextDriver → PromptEngine → PlanValidator → Response
+```
+
+Future validators may perform deeper checks such as schema validation, business rule enforcement, or cross-referencing against the `PlanningContext`.
