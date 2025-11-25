@@ -114,13 +114,14 @@ class StubContextDriver:
             )
 
         # Return ProjectContext in AF v1.1 format
+        # Default to "{}" for JSON artifact strings when empty to satisfy strict typing
         return ProjectContext(
             repo_owner=repo.owner,
             repo_name=repo.name,
             ref=repo.ref,
-            tree_json=repo_data.get("tree_json"),
-            dependency_json=repo_data.get("dependency_json"),
-            summary_json=repo_data.get("summary_json"),
+            tree_json=repo_data.get("tree_json") or "{}",
+            dependency_json=repo_data.get("dependency_json") or "{}",
+            summary_json=repo_data.get("summary_json") or "{}",
         )
 
 

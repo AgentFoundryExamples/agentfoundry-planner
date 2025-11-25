@@ -103,6 +103,36 @@ class TestStubContextDriver:
         assert context.repo_name == "my-repo"
         assert context.ref == "refs/heads/feature"
 
+    def test_fetch_context_returns_json_strings_not_none(self) -> None:
+        """fetch_context returns JSON strings defaulting to '{}' when empty."""
+        driver = StubContextDriver()
+        # Use a repo that should fall back to default fixture data
+        repo = RepositoryPointer(owner="nonexistent", name="nonexistent-repo")
+
+        context = driver.fetch_context(repo)
+
+        # JSON artifact strings should default to "{}" not None
+        assert context.tree_json is not None
+        assert context.dependency_json is not None
+        assert context.summary_json is not None
+        assert isinstance(context.tree_json, str)
+        assert isinstance(context.dependency_json, str)
+        assert isinstance(context.summary_json, str)
+
+    def test_fetch_context_returns_valid_json_strings(self) -> None:
+        """fetch_context returns parseable JSON strings."""
+        import json
+
+        driver = StubContextDriver()
+        repo = RepositoryPointer(owner="test-owner", name="test-repo")
+
+        context = driver.fetch_context(repo)
+
+        # All JSON strings should be parseable
+        json.loads(context.tree_json)  # Should not raise
+        json.loads(context.dependency_json)  # Should not raise
+        json.loads(context.summary_json)  # Should not raise
+
 
 class TestGetContextDriverFactory:
     """Tests for the get_context_driver factory function."""
