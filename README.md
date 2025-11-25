@@ -162,7 +162,22 @@ Returns service health status. Both endpoints return identical responses and are
 POST /v1/plan
 ```
 
-Create a new planning request. This endpoint accepts a planning request, fetches repository context using the context driver, invokes the prompt engine, and returns a plan response with tracking identifiers.
+Create a new planning request. This endpoint implements a validator-driven pipeline that treats prompt output as untrusted data.
+
+**Pipeline Flow (AF v1.1):**
+
+1. **Request ID Generation**: A `request_id` is generated (or echoed from client) at the start of the handler
+2. **Context Fetching**: Repository context is fetched via the context driver
+3. **PlanningContext Construction**: The `request_id`, user input, and project context are assembled
+4. **Prompt Engine Invocation**: The planning context is passed to the prompt engine
+5. **Validation**: The prompt engine output is validated via `PlanValidator.validate()` - all code paths must pass through validation
+6. **Response Generation**: On success, `run_id` is generated and `PlanResponse(status="ok", payload=validated_payload)` is returned with HTTP 200
+
+**Error Handling:**
+
+- **PlanValidationFailure** (invalid prompt output): Returns HTTP 422 with `ErrorResponse` containing `request_id` and error metadata - no `run_id` is included
+- **Context/Engine failures**: Return HTTP 500 with `ErrorResponse` containing `request_id` - no `run_id` is included
+- **Request validation errors**: Return HTTP 422 with `ErrorResponse` containing `request_id` - no `run_id` is included
 
 **Authentication:**
 
@@ -196,7 +211,7 @@ Authorization: Bearer <token>
 {
   "request_id": "uuid",
   "run_id": "uuid",
-  "status": "completed",
+  "status": "ok",
   "payload": {
     "request_id": "uuid",
     "repository": {
@@ -210,9 +225,24 @@ Authorization: Bearer <token>
 }
 ```
 
-Note: In the synchronous flow, `run_id` mirrors `request_id`. The `status` is "completed" when the prompt engine succeeds.
+Note: In the synchronous flow, `run_id` mirrors `request_id`. The `status` is "ok" when the prompt engine succeeds and validation passes.
 
-**Error Response (5xx):**
+**Validation Error Response (422):**
+
+When plan validation fails (prompt output doesn't meet structural requirements):
+```json
+{
+  "error": {
+    "code": "MISSING_REQUEST_ID",
+    "message": "Payload missing required key: request_id"
+  },
+  "request_id": "uuid"
+}
+```
+
+Note: Validation error responses (422) include `request_id` but omit `run_id` to indicate no run was created.
+
+**Server Error Response (5xx):**
 ```json
 {
   "error": {
@@ -669,6 +699,8 @@ Key log events emitted by the service:
 | `plan_request_completed` | `request_id`, `run_id`, `repository`, `repo_owner`, `repo_name`, `repo_ref`, `user_id`, `outcome`, `status` | Planning request completed successfully |
 | `plan_request_context_failure` | `request_id`, `repository`, `user_id`, `error`, `outcome` | Context driver failure |
 | `plan_request_engine_failure` | `request_id`, `repository`, `user_id`, `error`, `outcome` | Prompt engine failure |
+| `plan.validation.failed` | `request_id`, `validator_name`, `error_code` | Plan validation failure (structured telemetry) |
+| `plan_request_validation_failure` | `request_id`, `repository`, `user_id`, `error_code`, `error`, `outcome` | Plan validation failure (detailed) |
 | `auth_header_missing` | `message` | Authorization header missing (warning for future enforcement) |
 | `auth_header_invalid_format` | `message` | Invalid authorization format |
 | `context_driver_selected` | `driver` | Private context driver selected |
@@ -707,9 +739,22 @@ Request completed (JSON format):
   "repo_ref": "main",
   "user_id": "stub-user",
   "outcome": "success",
-  "status": "completed",
+  "status": "ok",
   "service": "planner-service",
   "level": "info",
+  "timestamp": "2025-01-01T00:00:00.000001Z"
+}
+```
+
+Validation failure (JSON format):
+```json
+{
+  "event": "plan.validation.failed",
+  "request_id": "550e8400-e29b-41d4-a716-446655440000",
+  "validator_name": "StubPlanValidator",
+  "error_code": "MISSING_REQUEST_ID",
+  "service": "planner-service",
+  "level": "warning",
   "timestamp": "2025-01-01T00:00:00.000001Z"
 }
 ```

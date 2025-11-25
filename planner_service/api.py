@@ -277,6 +277,13 @@ async def create_plan(
         validator = get_plan_validator()
         validated_payload = validator.validate(planning_context, engine_result)
     except PlanValidationFailure as e:
+        # Log structured validation failure event per AF v1.1 contract
+        logger.warning(
+            "plan.validation.failed",
+            request_id=str(request_id),
+            validator_name=type(validator).__name__,
+            error_code=e.code,
+        )
         logger.error(
             "plan_request_validation_failure",
             request_id=str(request_id),
@@ -297,19 +304,19 @@ async def create_plan(
             request_id=request_id,
         )
         return JSONResponse(
-            status_code=500,
+            status_code=422,
             content=error_response.model_dump(mode="json", exclude_none=True),
         )
 
     # Step 5: Generate run_id (mirrors request_id for synchronous flow)
     run_id = request_id
 
-    # Determine status from engine result
+    # Determine status from engine result - use "ok" for success per AF v1.1
     engine_status = validated_payload.get("status", "pending")
-    status = "completed" if engine_status == "success" else engine_status
+    status = "ok" if engine_status == "success" else engine_status
 
     # Determine outcome based on the computed status
-    outcome = "success" if status == "completed" else "failure"
+    outcome = "success" if status == "ok" else "failure"
 
     logger.info(
         "plan_request_completed",
@@ -328,7 +335,7 @@ async def create_plan(
         request_id=request_id,
         run_id=run_id,
         status=status,
-        payload=validated_payload if status == "completed" else None,
+        payload=validated_payload if status == "ok" else None,
     )
 
 
