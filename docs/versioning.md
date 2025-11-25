@@ -174,7 +174,9 @@ git push origin v0.1.0
 
 **Validation Pipeline (AF v1.1):**
 
-All `/v1/plan` requests flow through a validator-driven pipeline that treats prompt output as untrusted data:
+The AF v1.1 contract introduces a validator-driven pipeline that treats prompt output as untrusted data. This ensures that all responses are validated before being sent to clients.
+
+All `/v1/plan` requests flow through this pipeline:
 
 ```
 PlanRequest → PlanningContext → PromptEngine → PlanValidator → PlanResponse
@@ -199,6 +201,7 @@ Consumers referencing the old `repo` field should migrate to the new `owner/name
 
 | Old Field | New Field | Notes |
 |-----------|-----------|-------|
+| `owner` | `owner` | Unchanged |
 | `repo` | `name` | Repository name within the owner's namespace |
 | `ref: null` | `ref: "refs/heads/main"` | Explicit default instead of null |
 
@@ -246,9 +249,9 @@ The AF v1.1 contract enforces strict rules about when `run_id` is present or abs
 
 | Response Type | `request_id` | `run_id` | Description |
 |---------------|--------------|----------|-------------|
-| **Success (200)** | ✅ Present | ✅ Present | Planning completed successfully |
-| **Validation Error (422)** | ✅ Present | ❌ Absent | Input or plan validation failed |
-| **Server Error (5xx)** | ✅ Present | ❌ Absent | Context driver or engine failure |
+| **Success (200)** | Present | Present | Planning completed successfully |
+| **Validation Error (422)** | Present | Absent | Input or plan validation failed |
+| **Server Error (5xx)** | Present | Absent | Context driver or engine failure |
 
 **Key Invariant**: `run_id` is only included in success responses. Error responses omit `run_id` to indicate that no planning run was created.
 
