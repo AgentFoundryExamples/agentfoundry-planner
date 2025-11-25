@@ -6,10 +6,10 @@ Includes classification of external dependencies as stdlib vs third-party.
 
 ## Statistics
 
-- **Total files**: 8
-- **Intra-repo dependencies**: 12
+- **Total files**: 10
+- **Intra-repo dependencies**: 16
 - **External stdlib dependencies**: 15
-- **External third-party dependencies**: 11
+- **External third-party dependencies**: 12
 
 ## External Dependencies
 
@@ -35,9 +35,10 @@ Total: 15 unique modules
 
 ### Third-Party Packages
 
-Total: 11 unique packages
+Total: 12 unique packages
 
 - `af_github_core.GitHubContextDriver`
+- `af_prompt_core.PromptEngineBackend`
 - `fastapi.FastAPI`
 - `fastapi.HTTPException`
 - `fastapi.Header`
@@ -51,11 +52,12 @@ Total: 11 unique packages
 
 ## Most Depended Upon Files (Intra-Repo)
 
-- `planner_service/models.py` (4 dependents)
-- `planner_service/logging.py` (3 dependents)
+- `planner_service/models.py` (6 dependents)
+- `planner_service/logging.py` (4 dependents)
 - `planner_service/context_driver.py` (2 dependents)
 - `planner_service/api.py` (2 dependents)
 - `planner_service/__init__.py` (1 dependents)
+- `planner_service/prompt_engine.py` (1 dependents)
 
 ## Files with Most Dependencies (Intra-Repo)
 
@@ -63,3 +65,5 @@ Total: 11 unique packages
 - `tests/test_app.py` (3 dependencies)
 - `tests/test_context_driver.py` (3 dependencies)
 - `planner_service/context_driver.py` (2 dependencies)
+- `planner_service/prompt_engine.py` (2 dependencies)
+- `tests/test_prompt_engine.py` (2 dependencies)

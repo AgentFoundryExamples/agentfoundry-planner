@@ -76,6 +76,21 @@
       }
     },
     {
+      "id": "planner_service/prompt_engine.py",
+      "path": "planner_service/prompt_engine.py",
+      "type": "file",
+      "external_dependencies": {
+        "stdlib": [
+          "typing.Protocol",
+          "typing.runtime_checkable",
+          "uuid.uuid4"
+        ],
+        "third-party": [
+          "af_prompt_core.PromptEngineBackend"
+        ]
+      }
+    },
+    {
       "id": "tests/__init__.py",
       "path": "tests/__init__.py",
       "type": "file",
@@ -115,6 +130,21 @@
           "pytest"
         ]
       }
+    },
+    {
+      "id": "tests/test_prompt_engine.py",
+      "path": "tests/test_prompt_engine.py",
+      "type": "file",
+      "external_dependencies": {
+        "stdlib": [
+          "builtins",
+          "unittest.mock.MagicMock",
+          "unittest.mock.patch"
+        ],
+        "third-party": [
+          "pytest"
+        ]
+      }
     }
   ],
   "edges": [
@@ -143,6 +173,14 @@
       "target": "planner_service/models.py"
     },
     {
+      "source": "planner_service/prompt_engine.py",
+      "target": "planner_service/logging.py"
+    },
+    {
+      "source": "planner_service/prompt_engine.py",
+      "target": "planner_service/models.py"
+    },
+    {
       "source": "tests/test_app.py",
       "target": "planner_service/api.py"
     },
@@ -165,6 +203,14 @@
     {
       "source": "tests/test_context_driver.py",
       "target": "planner_service/models.py"
+    },
+    {
+      "source": "tests/test_prompt_engine.py",
+      "target": "planner_service/models.py"
+    },
+    {
+      "source": "tests/test_prompt_engine.py",
+      "target": "planner_service/prompt_engine.py"
     }
   ],
   "external_dependencies_summary": {
@@ -187,6 +233,7 @@
     ],
     "third-party": [
       "af_github_core.GitHubContextDriver",
+      "af_prompt_core.PromptEngineBackend",
       "fastapi.FastAPI",
       "fastapi.HTTPException",
       "fastapi.Header",
@@ -199,6 +246,6 @@
       "structlog"
     ],
     "stdlib_count": 15,
-    "third-party_count": 11
+    "third-party_count": 12
   }
 }

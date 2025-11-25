@@ -4,7 +4,7 @@ Heuristic summaries of source files based on filenames, extensions, and paths.
 
 Schema Version: 2.0
 
-Total files: 8
+Total files: 10
 
 ## planner_service/__init__.py
 **Language:** Python  
@@ -88,6 +88,22 @@ Total files: 8
   - **Stdlib:** `typing.Optional`, `uuid.UUID`
   - **Third-party:** `pydantic.BaseModel`, `pydantic.Field`
 
+## planner_service/prompt_engine.py
+**Language:** Python  
+**Role:** implementation  
+**Role Justification:** general implementation file (default classification)  
+**Size:** 4.69 KB  
+**LOC:** 87  
+**TODOs/FIXMEs:** 0  
+**Declarations:** 3  
+**Top-level declarations:**
+  - class PromptEngine
+  - class StubPromptEngine
+  - function get_prompt_engine
+**External Dependencies:**
+  - **Stdlib:** `typing.Protocol`, `typing.runtime_checkable`, `uuid.uuid4`
+  - **Third-party:** `af_prompt_core.PromptEngineBackend`
+
 ## tests/__init__.py
 **Language:** Python  
 **Role:** test  
@@ -132,3 +148,21 @@ Total files: 8
 **External Dependencies:**
   - **Stdlib:** `builtins`, `sys`, `unittest.mock.MagicMock`, `unittest.mock.patch`
   - **Third-party:** `fastapi.testclient.TestClient`, `pytest`
+
+## tests/test_prompt_engine.py
+**Language:** Python  
+**Role:** test  
+**Role Justification:** filename starts with 'test_'  
+**Size:** 10.19 KB  
+**LOC:** 211  
+**TODOs/FIXMEs:** 0  
+**Declarations:** 5  
+**Top-level declarations:**
+  - function sample_planning_context
+  - class TestPromptEngineProtocol
+  - class TestStubPromptEngine
+  - class TestGetPromptEngineFactory
+  - class TestMultipleProjectContextHandling
+**External Dependencies:**
+  - **Stdlib:** `builtins`, `unittest.mock.MagicMock`, `unittest.mock.patch`
+  - **Third-party:** `pytest`

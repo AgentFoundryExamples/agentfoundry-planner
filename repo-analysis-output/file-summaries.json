@@ -1,6 +1,6 @@
 {
   "schema_version": "2.0",
-  "total_files": 8,
+  "total_files": 10,
   "files": [
     {
       "schema_version": "2.0",
@@ -179,6 +179,40 @@
     },
     {
       "schema_version": "2.0",
+      "path": "planner_service/prompt_engine.py",
+      "language": "Python",
+      "role": "implementation",
+      "role_justification": "general implementation file (default classification)",
+      "metrics": {
+        "size_bytes": 4807,
+        "loc": 87,
+        "todo_count": 0,
+        "declaration_count": 3
+      },
+      "structure": {
+        "declarations": [
+          "class PromptEngine",
+          "class StubPromptEngine",
+          "function get_prompt_engine"
+        ]
+      },
+      "dependencies": {
+        "imports": [],
+        "exports": [],
+        "external": {
+          "stdlib": [
+            "typing.Protocol",
+            "typing.runtime_checkable",
+            "uuid.uuid4"
+          ],
+          "third-party": [
+            "af_prompt_core.PromptEngineBackend"
+          ]
+        }
+      }
+    },
+    {
+      "schema_version": "2.0",
       "path": "tests/__init__.py",
       "language": "Python",
       "role": "test",
@@ -270,6 +304,42 @@
           ],
           "third-party": [
             "fastapi.testclient.TestClient",
+            "pytest"
+          ]
+        }
+      }
+    },
+    {
+      "schema_version": "2.0",
+      "path": "tests/test_prompt_engine.py",
+      "language": "Python",
+      "role": "test",
+      "role_justification": "filename starts with 'test_'",
+      "metrics": {
+        "size_bytes": 10430,
+        "loc": 211,
+        "todo_count": 0,
+        "declaration_count": 5
+      },
+      "structure": {
+        "declarations": [
+          "function sample_planning_context",
+          "class TestPromptEngineProtocol",
+          "class TestStubPromptEngine",
+          "class TestGetPromptEngineFactory",
+          "class TestMultipleProjectContextHandling"
+        ]
+      },
+      "dependencies": {
+        "imports": [],
+        "exports": [],
+        "external": {
+          "stdlib": [
+            "builtins",
+            "unittest.mock.MagicMock",
+            "unittest.mock.patch"
+          ],
+          "third-party": [
             "pytest"
           ]
         }
