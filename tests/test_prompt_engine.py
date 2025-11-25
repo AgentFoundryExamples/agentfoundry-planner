@@ -24,6 +24,7 @@ from uuid import uuid4
 
 import pytest
 
+from planner_service import __version__
 from planner_service.models import (
     PlanningContext,
     ProjectContext,
@@ -91,8 +92,6 @@ class TestStubPromptEngine:
         self, sample_planning_context: PlanningContext
     ) -> None:
         """run returns plan_version matching the package version."""
-        from planner_service import __version__
-
         engine = StubPromptEngine()
         result = engine.run(sample_planning_context)
 
