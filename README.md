@@ -19,6 +19,7 @@ planner-service/
 ├── planner_service/
 │   ├── __init__.py         # Package initialization
 │   ├── api.py              # FastAPI application and endpoints
+│   ├── auth.py             # Authentication context and dependency
 │   ├── context_driver.py   # Context driver abstraction and factory
 │   ├── logging.py          # Structlog configuration
 │   ├── models.py           # Pydantic data models
@@ -28,6 +29,7 @@ planner-service/
 ├── tests/
 │   ├── test_app.py         # Unit and integration tests
 │   ├── test_context_driver.py  # Context driver tests
+│   ├── test_plan_endpoint.py   # Plan endpoint tests
 │   └── test_prompt_engine.py   # Prompt engine tests
 ├── Dockerfile              # Cloud Run deployment
 ├── pyproject.toml          # Project metadata and dependencies
@@ -89,9 +91,10 @@ Missing environment variables fall back to safe defaults without crashing server
 
 ```
 GET /health
+GET /healthz
 ```
 
-Returns service health status. Available even when downstream stubs fail to initialize.
+Returns service health status. Both endpoints return identical responses and are available even when downstream stubs fail to initialize. The `/healthz` endpoint follows Kubernetes naming conventions.
 
 **Response:**
 ```json
@@ -108,7 +111,15 @@ Returns service health status. Available even when downstream stubs fail to init
 POST /v1/plan
 ```
 
-Create a new planning request.
+Create a new planning request. This endpoint accepts a planning request, fetches repository context using the context driver, invokes the prompt engine, and returns a plan response with tracking identifiers.
+
+**Authentication:**
+
+The endpoint accepts an optional `Authorization` header with a Bearer token. If the header is missing or invalid, a stub user is used (with a warning logged for future enforcement).
+
+```
+Authorization: Bearer <token>
+```
 
 **Request Body:**
 ```json
@@ -126,14 +137,46 @@ Create a new planning request.
 }
 ```
 
-**Response:**
+**Success Response (200):**
 ```json
 {
   "request_id": "uuid",
   "run_id": "uuid",
-  "status": "pending",
+  "status": "completed",
   "steps": null
 }
+```
+
+Note: In the synchronous flow, `run_id` mirrors `request_id`. The `status` is "completed" when the prompt engine succeeds.
+
+**Error Response (5xx):**
+```json
+{
+  "error": {
+    "code": "CONTEXT_DRIVER_ERROR",
+    "message": "Failed to fetch repository context: ..."
+  },
+  "request_id": "uuid"
+}
+```
+
+Note: Error responses include `request_id` but omit `run_id` to indicate no run was created.
+
+**Example Request:**
+```bash
+curl -X POST http://localhost:8080/v1/plan \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer my-token" \
+  -d '{
+    "repository": {
+      "owner": "myorg",
+      "repo": "myrepo",
+      "ref": "main"
+    },
+    "user_input": {
+      "query": "Add user authentication feature"
+    }
+  }'
 ```
 
 ### API Documentation
@@ -413,16 +456,58 @@ The service uses structlog for structured logging with the following features:
 
 Key log events emitted by the service:
 
-| Event | Description |
-|-------|-------------|
-| `planner_service_starting` | Service startup with version info |
-| `planner_service_shutting_down` | Service shutdown |
-| `plan_request_received` | New planning request with request_id and run_id |
-| `context_driver_selected` | Private context driver selected |
-| `context_driver_fallback` | Fallback to stub context driver |
-| `prompt_engine_selected` | Private prompt engine selected |
-| `prompt_engine_fallback` | Fallback to stub prompt engine |
-| `stub_prompt_engine_run` | Stub prompt engine executed with request metadata |
+| Event | Fields | Description |
+|-------|--------|-------------|
+| `planner_service_starting` | `version` | Service startup with version info |
+| `planner_service_shutting_down` | - | Service shutdown |
+| `plan_request_received` | `request_id`, `repository`, `repo_owner`, `repo_name`, `repo_ref`, `user_id` | New planning request received |
+| `plan_request_completed` | `request_id`, `run_id`, `repository`, `repo_owner`, `repo_name`, `repo_ref`, `user_id`, `outcome`, `status` | Planning request completed successfully |
+| `plan_request_context_failure` | `request_id`, `repository`, `user_id`, `error`, `outcome` | Context driver failure |
+| `plan_request_engine_failure` | `request_id`, `repository`, `user_id`, `error`, `outcome` | Prompt engine failure |
+| `auth_header_missing` | `message` | Authorization header missing (warning for future enforcement) |
+| `auth_header_invalid_format` | `message` | Invalid authorization format |
+| `context_driver_selected` | `driver` | Private context driver selected |
+| `context_driver_fallback` | `driver`, `reason` | Fallback to stub context driver |
+| `prompt_engine_selected` | `engine` | Private prompt engine selected |
+| `prompt_engine_fallback` | `engine`, `reason` | Fallback to stub prompt engine |
+| `stub_prompt_engine_run` | `request_id`, `repository`, `session_id` | Stub prompt engine executed |
+
+### Example Log Output
+
+Request received (JSON format):
+```json
+{
+  "event": "plan_request_received",
+  "request_id": "550e8400-e29b-41d4-a716-446655440000",
+  "repository": "myorg/myrepo",
+  "repo_owner": "myorg",
+  "repo_name": "myrepo",
+  "repo_ref": "main",
+  "user_id": "stub-user",
+  "service": "planner-service",
+  "level": "info",
+  "timestamp": "2025-01-01T00:00:00.000000Z"
+}
+```
+
+Request completed (JSON format):
+```json
+{
+  "event": "plan_request_completed",
+  "request_id": "550e8400-e29b-41d4-a716-446655440000",
+  "run_id": "550e8400-e29b-41d4-a716-446655440000",
+  "repository": "myorg/myrepo",
+  "repo_owner": "myorg",
+  "repo_name": "myrepo",
+  "repo_ref": "main",
+  "user_id": "stub-user",
+  "outcome": "success",
+  "status": "completed",
+  "service": "planner-service",
+  "level": "info",
+  "timestamp": "2025-01-01T00:00:00.000001Z"
+}
+```
 
 ## Running Tests
 

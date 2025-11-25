@@ -55,7 +55,7 @@ class TestPlanEndpoint:
     """Tests for the /v1/plan endpoint."""
 
     def test_plan_returns_pending_status(self, client: TestClient) -> None:
-        """Plan endpoint returns pending status for valid request."""
+        """Plan endpoint returns completed status for valid request."""
         payload = {
             "repository": {
                 "owner": "test-owner",
@@ -68,10 +68,10 @@ class TestPlanEndpoint:
         response = client.post("/v1/plan", json=payload)
         assert response.status_code == 200
         data = response.json()
-        assert data["status"] == "pending"
+        assert data["status"] == "completed"
 
     def test_plan_returns_request_and_run_ids(self, client: TestClient) -> None:
-        """Plan endpoint returns valid request_id and run_id."""
+        """Plan endpoint returns valid request_id and run_id (mirrored in sync flow)."""
         payload = {
             "repository": {
                 "owner": "test-owner",
@@ -89,8 +89,8 @@ class TestPlanEndpoint:
         run_id = UUID(data["run_id"])
         assert request_id is not None
         assert run_id is not None
-        # run_id should be different from request_id
-        assert request_id != run_id
+        # run_id mirrors request_id in synchronous flow
+        assert request_id == run_id
 
     def test_plan_echoes_provided_request_id(self, client: TestClient) -> None:
         """Plan endpoint echoes client-provided request_id."""
