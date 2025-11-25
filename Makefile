@@ -82,15 +82,10 @@ lint: $(VENV)/bin/activate
 		echo "Skipping lint..."; \
 	fi
 
-# Run tests with pytest
-test: $(VENV)/bin/activate
-	@if [ -f "$(PYTEST)" ]; then \
-		echo "Running tests with pytest..."; \
-		$(PYTEST) -v; \
-	else \
-		echo "pytest not found in virtualenv. Run 'make install-dev' first."; \
-		exit 1; \
-	fi
+# Run tests with pytest (depends on install-dev to ensure pytest is available)
+test: install-dev
+	@echo "Running tests with pytest..."
+	$(PYTEST) -v
 
 # Start the development server with uvicorn
 run: $(VENV)/bin/activate
