@@ -1,6 +1,6 @@
 {
   "schema_version": "2.0",
-  "total_files": 10,
+  "total_files": 12,
   "files": [
     {
       "schema_version": "2.0",
@@ -32,16 +32,18 @@
       "role": "api",
       "role_justification": "filename contains 'api'",
       "metrics": {
-        "size_bytes": 6433,
-        "loc": 145,
+        "size_bytes": 12532,
+        "loc": 297,
         "todo_count": 0,
-        "declaration_count": 6
+        "declaration_count": 8
       },
       "structure": {
         "declarations": [
           "async function lifespan",
           "async function http_exception_handler",
+          "async function validation_exception_handler",
           "async function health_check",
+          "async function healthz",
           "async function create_plan",
           "function _verify_debug_auth",
           "async function debug_context"
@@ -55,14 +57,50 @@
             "contextlib.asynccontextmanager",
             "os",
             "typing.AsyncGenerator",
+            "uuid.UUID",
             "uuid.uuid4"
           ],
           "third-party": [
+            "fastapi.Depends",
             "fastapi.FastAPI",
             "fastapi.HTTPException",
             "fastapi.Header",
             "fastapi.Request",
+            "fastapi.exceptions.RequestValidationError",
             "fastapi.responses.JSONResponse"
+          ]
+        }
+      }
+    },
+    {
+      "schema_version": "2.0",
+      "path": "planner_service/auth.py",
+      "language": "Python",
+      "role": "implementation",
+      "role_justification": "general implementation file (default classification)",
+      "metrics": {
+        "size_bytes": 2772,
+        "loc": 38,
+        "todo_count": 0,
+        "declaration_count": 2
+      },
+      "structure": {
+        "declarations": [
+          "class AuthContext",
+          "function get_current_user"
+        ]
+      },
+      "dependencies": {
+        "imports": [],
+        "exports": [],
+        "external": {
+          "stdlib": [
+            "typing.Optional"
+          ],
+          "third-party": [
+            "fastapi.Header",
+            "pydantic.BaseModel",
+            "pydantic.Field"
           ]
         }
       }
@@ -241,7 +279,7 @@
       "role": "test",
       "role_justification": "filename starts with 'test_'",
       "metrics": {
-        "size_bytes": 7138,
+        "size_bytes": 7169,
         "loc": 154,
         "todo_count": 0,
         "declaration_count": 6
@@ -301,6 +339,47 @@
             "sys",
             "unittest.mock.MagicMock",
             "unittest.mock.patch"
+          ],
+          "third-party": [
+            "fastapi.testclient.TestClient",
+            "pytest"
+          ]
+        }
+      }
+    },
+    {
+      "schema_version": "2.0",
+      "path": "tests/test_plan_endpoint.py",
+      "language": "Python",
+      "role": "test",
+      "role_justification": "filename starts with 'test_'",
+      "metrics": {
+        "size_bytes": 13591,
+        "loc": 270,
+        "todo_count": 0,
+        "declaration_count": 9
+      },
+      "structure": {
+        "declarations": [
+          "function client",
+          "class TestPlanEndpointAuth",
+          "class TestPlanEndpointHappyPath",
+          "class TestPlanEndpointContextDriverFailure",
+          "class TestPlanEndpointPromptEngineFailure",
+          "class TestPlanEndpointValidation",
+          "class TestHealthEndpoints",
+          "class TestAuthContextModel",
+          "class TestGetCurrentUserDependency"
+        ]
+      },
+      "dependencies": {
+        "imports": [],
+        "exports": [],
+        "external": {
+          "stdlib": [
+            "unittest.mock.MagicMock",
+            "unittest.mock.patch",
+            "uuid.UUID"
           ],
           "third-party": [
             "fastapi.testclient.TestClient",

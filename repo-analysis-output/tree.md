@@ -12,6 +12,7 @@
     └── mock_context.json
   ├── __init__.py
   ├── api.py
+  ├── auth.py
   ├── context_driver.py
   ├── logging.py
   ├── models.py
@@ -28,6 +29,7 @@
   ├── __init__.py
   ├── test_app.py
   ├── test_context_driver.py
+  ├── test_plan_endpoint.py
   └── test_prompt_engine.py
 ├── .gitignore
 ├── Dockerfile

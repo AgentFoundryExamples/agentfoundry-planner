@@ -18,14 +18,32 @@
           "contextlib.asynccontextmanager",
           "os",
           "typing.AsyncGenerator",
+          "uuid.UUID",
           "uuid.uuid4"
         ],
         "third-party": [
+          "fastapi.Depends",
           "fastapi.FastAPI",
           "fastapi.HTTPException",
           "fastapi.Header",
           "fastapi.Request",
+          "fastapi.exceptions.RequestValidationError",
           "fastapi.responses.JSONResponse"
+        ]
+      }
+    },
+    {
+      "id": "planner_service/auth.py",
+      "path": "planner_service/auth.py",
+      "type": "file",
+      "external_dependencies": {
+        "stdlib": [
+          "typing.Optional"
+        ],
+        "third-party": [
+          "fastapi.Header",
+          "pydantic.BaseModel",
+          "pydantic.Field"
         ]
       }
     },
@@ -132,6 +150,22 @@
       }
     },
     {
+      "id": "tests/test_plan_endpoint.py",
+      "path": "tests/test_plan_endpoint.py",
+      "type": "file",
+      "external_dependencies": {
+        "stdlib": [
+          "unittest.mock.MagicMock",
+          "unittest.mock.patch",
+          "uuid.UUID"
+        ],
+        "third-party": [
+          "fastapi.testclient.TestClient",
+          "pytest"
+        ]
+      }
+    },
+    {
       "id": "tests/test_prompt_engine.py",
       "path": "tests/test_prompt_engine.py",
       "type": "file",
@@ -154,6 +188,10 @@
     },
     {
       "source": "planner_service/api.py",
+      "target": "planner_service/auth.py"
+    },
+    {
+      "source": "planner_service/api.py",
       "target": "planner_service/context_driver.py"
     },
     {
@@ -163,6 +201,14 @@
     {
       "source": "planner_service/api.py",
       "target": "planner_service/models.py"
+    },
+    {
+      "source": "planner_service/api.py",
+      "target": "planner_service/prompt_engine.py"
+    },
+    {
+      "source": "planner_service/auth.py",
+      "target": "planner_service/logging.py"
     },
     {
       "source": "planner_service/context_driver.py",
@@ -203,6 +249,22 @@
     {
       "source": "tests/test_context_driver.py",
       "target": "planner_service/models.py"
+    },
+    {
+      "source": "tests/test_plan_endpoint.py",
+      "target": "planner_service/api.py"
+    },
+    {
+      "source": "tests/test_plan_endpoint.py",
+      "target": "planner_service/context_driver.py"
+    },
+    {
+      "source": "tests/test_plan_endpoint.py",
+      "target": "planner_service/prompt_engine.py"
+    },
+    {
+      "source": "tests/test_plan_endpoint.py",
+      "target": "planner_service/auth.py"
     },
     {
       "source": "tests/test_prompt_engine.py",
@@ -234,10 +296,12 @@
     "third-party": [
       "af_github_core.GitHubContextDriver",
       "af_prompt_core.PromptEngineBackend",
+      "fastapi.Depends",
       "fastapi.FastAPI",
       "fastapi.HTTPException",
       "fastapi.Header",
       "fastapi.Request",
+      "fastapi.exceptions.RequestValidationError",
       "fastapi.responses.JSONResponse",
       "fastapi.testclient.TestClient",
       "pydantic.BaseModel",
@@ -246,6 +310,6 @@
       "structlog"
     ],
     "stdlib_count": 15,
-    "third-party_count": 12
+    "third-party_count": 14
   }
 }

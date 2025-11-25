@@ -6,10 +6,10 @@ Includes classification of external dependencies as stdlib vs third-party.
 
 ## Statistics
 
-- **Total files**: 10
-- **Intra-repo dependencies**: 16
+- **Total files**: 12
+- **Intra-repo dependencies**: 23
 - **External stdlib dependencies**: 15
-- **External third-party dependencies**: 12
+- **External third-party dependencies**: 14
 
 ## External Dependencies
 
@@ -35,14 +35,16 @@ Total: 15 unique modules
 
 ### Third-Party Packages
 
-Total: 12 unique packages
+Total: 14 unique packages
 
 - `af_github_core.GitHubContextDriver`
 - `af_prompt_core.PromptEngineBackend`
+- `fastapi.Depends`
 - `fastapi.FastAPI`
 - `fastapi.HTTPException`
 - `fastapi.Header`
 - `fastapi.Request`
+- `fastapi.exceptions.RequestValidationError`
 - `fastapi.responses.JSONResponse`
 - `fastapi.testclient.TestClient`
 - `pydantic.BaseModel`
@@ -53,17 +55,20 @@ Total: 12 unique packages
 ## Most Depended Upon Files (Intra-Repo)
 
 - `planner_service/models.py` (6 dependents)
-- `planner_service/logging.py` (4 dependents)
-- `planner_service/context_driver.py` (2 dependents)
-- `planner_service/api.py` (2 dependents)
+- `planner_service/logging.py` (5 dependents)
+- `planner_service/context_driver.py` (3 dependents)
+- `planner_service/prompt_engine.py` (3 dependents)
+- `planner_service/api.py` (3 dependents)
+- `planner_service/auth.py` (2 dependents)
 - `planner_service/__init__.py` (1 dependents)
-- `planner_service/prompt_engine.py` (1 dependents)
 
 ## Files with Most Dependencies (Intra-Repo)
 
-- `planner_service/api.py` (4 dependencies)
+- `planner_service/api.py` (6 dependencies)
+- `tests/test_plan_endpoint.py` (4 dependencies)
 - `tests/test_app.py` (3 dependencies)
 - `tests/test_context_driver.py` (3 dependencies)
 - `planner_service/context_driver.py` (2 dependencies)
 - `planner_service/prompt_engine.py` (2 dependencies)
 - `tests/test_prompt_engine.py` (2 dependencies)
+- `planner_service/auth.py` (1 dependencies)

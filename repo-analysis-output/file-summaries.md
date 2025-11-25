@@ -4,7 +4,7 @@ Heuristic summaries of source files based on filenames, extensions, and paths.
 
 Schema Version: 2.0
 
-Total files: 10
+Total files: 12
 
 ## planner_service/__init__.py
 **Language:** Python  
@@ -18,20 +18,38 @@ Total files: 10
 **Language:** Python  
 **Role:** api  
 **Role Justification:** filename contains 'api'  
-**Size:** 6.28 KB  
-**LOC:** 145  
+**Size:** 12.24 KB  
+**LOC:** 297  
 **TODOs/FIXMEs:** 0  
-**Declarations:** 6  
+**Declarations:** 8  
 **Top-level declarations:**
   - async function lifespan
   - async function http_exception_handler
+  - async function validation_exception_handler
   - async function health_check
+  - async function healthz
   - async function create_plan
   - function _verify_debug_auth
   - async function debug_context
 **External Dependencies:**
-  - **Stdlib:** `contextlib.asynccontextmanager`, `os`, `typing.AsyncGenerator`, `uuid.uuid4`
-  - **Third-party:** `fastapi.FastAPI`, `fastapi.HTTPException`, `fastapi.Header`, `fastapi.Request`, `fastapi.responses.JSONResponse`
+  - **Stdlib:** `contextlib.asynccontextmanager`, `os`, `typing.AsyncGenerator`, `uuid.UUID`, `uuid.uuid4`
+  - **Third-party:** `fastapi.Depends`, `fastapi.FastAPI`, `fastapi.HTTPException`, `fastapi.Header`, `fastapi.Request`
+    _(and 2 more)_
+
+## planner_service/auth.py
+**Language:** Python  
+**Role:** implementation  
+**Role Justification:** general implementation file (default classification)  
+**Size:** 2.71 KB  
+**LOC:** 38  
+**TODOs/FIXMEs:** 0  
+**Declarations:** 2  
+**Top-level declarations:**
+  - class AuthContext
+  - function get_current_user
+**External Dependencies:**
+  - **Stdlib:** `typing.Optional`
+  - **Third-party:** `fastapi.Header`, `pydantic.BaseModel`, `pydantic.Field`
 
 ## planner_service/context_driver.py
 **Language:** Python  
@@ -116,7 +134,7 @@ Total files: 10
 **Language:** Python  
 **Role:** test  
 **Role Justification:** filename starts with 'test_'  
-**Size:** 6.97 KB  
+**Size:** 7.00 KB  
 **LOC:** 154  
 **TODOs/FIXMEs:** 0  
 **Declarations:** 6  
@@ -147,6 +165,28 @@ Total files: 10
   - class TestDebugContextEndpoint
 **External Dependencies:**
   - **Stdlib:** `builtins`, `sys`, `unittest.mock.MagicMock`, `unittest.mock.patch`
+  - **Third-party:** `fastapi.testclient.TestClient`, `pytest`
+
+## tests/test_plan_endpoint.py
+**Language:** Python  
+**Role:** test  
+**Role Justification:** filename starts with 'test_'  
+**Size:** 13.27 KB  
+**LOC:** 270  
+**TODOs/FIXMEs:** 0  
+**Declarations:** 9  
+**Top-level declarations:**
+  - function client
+  - class TestPlanEndpointAuth
+  - class TestPlanEndpointHappyPath
+  - class TestPlanEndpointContextDriverFailure
+  - class TestPlanEndpointPromptEngineFailure
+  - class TestPlanEndpointValidation
+  - class TestHealthEndpoints
+  - class TestAuthContextModel
+  - class TestGetCurrentUserDependency
+**External Dependencies:**
+  - **Stdlib:** `unittest.mock.MagicMock`, `unittest.mock.patch`, `uuid.UUID`
   - **Third-party:** `fastapi.testclient.TestClient`, `pytest`
 
 ## tests/test_prompt_engine.py
