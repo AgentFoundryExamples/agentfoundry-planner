@@ -166,10 +166,9 @@ async def debug_context(
         authorization: Bearer token for authentication.
 
     Returns:
-        ProjectContext for the specified repository.
-
-    Raises:
-        Returns structured error with request_id (no run_id) if fixtures missing.
+        ProjectContext for the specified repository on success.
+        JSONResponse with structured error (including request_id, no run_id)
+        if fixtures are missing.
     """
     _verify_debug_auth(authorization)
 

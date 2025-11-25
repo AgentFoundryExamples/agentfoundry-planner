@@ -254,8 +254,6 @@ class TestDebugContextEndpoint:
         self, client: TestClient
     ) -> None:
         """Debug endpoint returns structured error when fixture file is missing."""
-        from planner_service.context_driver import StubContextDriver
-
         # Mock the fixture loading to raise FileNotFoundError
         with patch.object(
             StubContextDriver,
