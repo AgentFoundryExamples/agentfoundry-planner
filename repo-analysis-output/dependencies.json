@@ -98,6 +98,20 @@
       }
     },
     {
+      "id": "planner_service/plan_validator.py",
+      "path": "planner_service/plan_validator.py",
+      "type": "file",
+      "external_dependencies": {
+        "stdlib": [
+          "typing.Protocol",
+          "typing.runtime_checkable"
+        ],
+        "third-party": [
+          "af_plan_validator.PlanValidatorBackend"
+        ]
+      }
+    },
+    {
       "id": "planner_service/prompt_engine.py",
       "path": "planner_service/prompt_engine.py",
       "type": "file",
@@ -168,6 +182,22 @@
       }
     },
     {
+      "id": "tests/test_plan_validator.py",
+      "path": "tests/test_plan_validator.py",
+      "type": "file",
+      "external_dependencies": {
+        "stdlib": [
+          "builtins",
+          "unittest.mock.MagicMock",
+          "unittest.mock.patch",
+          "uuid.uuid4"
+        ],
+        "third-party": [
+          "pytest"
+        ]
+      }
+    },
+    {
       "id": "tests/test_prompt_engine.py",
       "path": "tests/test_prompt_engine.py",
       "type": "file",
@@ -207,6 +237,10 @@
     },
     {
       "source": "planner_service/api.py",
+      "target": "planner_service/plan_validator.py"
+    },
+    {
+      "source": "planner_service/api.py",
       "target": "planner_service/prompt_engine.py"
     },
     {
@@ -222,6 +256,18 @@
       "target": "planner_service/models.py"
     },
     {
+      "source": "planner_service/plan_validator.py",
+      "target": "planner_service/logging.py"
+    },
+    {
+      "source": "planner_service/plan_validator.py",
+      "target": "planner_service/models.py"
+    },
+    {
+      "source": "planner_service/prompt_engine.py",
+      "target": "planner_service/__init__.py"
+    },
+    {
       "source": "planner_service/prompt_engine.py",
       "target": "planner_service/logging.py"
     },
@@ -267,7 +313,23 @@
     },
     {
       "source": "tests/test_plan_endpoint.py",
+      "target": "planner_service/plan_validator.py"
+    },
+    {
+      "source": "tests/test_plan_endpoint.py",
       "target": "planner_service/auth.py"
+    },
+    {
+      "source": "tests/test_plan_validator.py",
+      "target": "planner_service/models.py"
+    },
+    {
+      "source": "tests/test_plan_validator.py",
+      "target": "planner_service/plan_validator.py"
+    },
+    {
+      "source": "tests/test_prompt_engine.py",
+      "target": "planner_service/__init__.py"
     },
     {
       "source": "tests/test_prompt_engine.py",
@@ -298,6 +360,7 @@
     ],
     "third-party": [
       "af_github_core.GitHubContextDriver",
+      "af_plan_validator.PlanValidatorBackend",
       "af_prompt_core.PromptEngineBackend",
       "fastapi.Depends",
       "fastapi.FastAPI",
@@ -317,6 +380,6 @@
       "structlog"
     ],
     "stdlib_count": 15,
-    "third-party_count": 18
+    "third-party_count": 19
   }
 }

@@ -4,7 +4,7 @@ Heuristic summaries of source files based on filenames, extensions, and paths.
 
 Schema Version: 2.0
 
-Total files: 12
+Total files: 14
 
 ## planner_service/__init__.py
 **Language:** Python  
@@ -18,8 +18,8 @@ Total files: 12
 **Language:** Python  
 **Role:** api  
 **Role Justification:** filename contains 'api'  
-**Size:** 12.31 KB  
-**LOC:** 297  
+**Size:** 13.35 KB  
+**LOC:** 325  
 **TODOs/FIXMEs:** 0  
 **Declarations:** 8  
 **Top-level declarations:**
@@ -108,12 +108,29 @@ Total files: 12
   - **Third-party:** `pydantic.BaseModel`, `pydantic.ConfigDict`, `pydantic.Field`, `pydantic.StrictStr`, `pydantic.ValidationInfo`
     _(and 1 more)_
 
+## planner_service/plan_validator.py
+**Language:** Python  
+**Role:** implementation  
+**Role Justification:** general implementation file (default classification)  
+**Size:** 5.72 KB  
+**LOC:** 106  
+**TODOs/FIXMEs:** 0  
+**Declarations:** 4  
+**Top-level declarations:**
+  - class PlanValidationFailure
+  - class PlanValidator
+  - class StubPlanValidator
+  - function get_plan_validator
+**External Dependencies:**
+  - **Stdlib:** `typing.Protocol`, `typing.runtime_checkable`
+  - **Third-party:** `af_plan_validator.PlanValidatorBackend`
+
 ## planner_service/prompt_engine.py
 **Language:** Python  
 **Role:** implementation  
 **Role Justification:** general implementation file (default classification)  
-**Size:** 4.98 KB  
-**LOC:** 90  
+**Size:** 5.13 KB  
+**LOC:** 93  
 **TODOs/FIXMEs:** 0  
 **Declarations:** 3  
 **Top-level declarations:**
@@ -174,10 +191,10 @@ Total files: 12
 **Language:** Python  
 **Role:** test  
 **Role Justification:** filename starts with 'test_'  
-**Size:** 19.70 KB  
-**LOC:** 422  
+**Size:** 21.90 KB  
+**LOC:** 472  
 **TODOs/FIXMEs:** 0  
-**Declarations:** 10  
+**Declarations:** 11  
 **Top-level declarations:**
   - function client
   - function _make_user_input
@@ -185,20 +202,42 @@ Total files: 12
   - class TestPlanEndpointHappyPath
   - class TestPlanEndpointContextDriverFailure
   - class TestPlanEndpointPromptEngineFailure
+  - class TestPlanEndpointPlanValidationFailure
   - class TestPlanEndpointValidation
   - class TestHealthEndpoints
   - class TestAuthContextModel
-  - class TestGetCurrentUserDependency
+  - ... and 1 more
 **External Dependencies:**
   - **Stdlib:** `unittest.mock.patch`, `uuid.UUID`
   - **Third-party:** `fastapi.testclient.TestClient`, `pytest`
+
+## tests/test_plan_validator.py
+**Language:** Python  
+**Role:** test  
+**Role Justification:** filename starts with 'test_'  
+**Size:** 14.70 KB  
+**LOC:** 302  
+**TODOs/FIXMEs:** 0  
+**Declarations:** 8  
+**Top-level declarations:**
+  - function sample_planning_context
+  - function valid_payload
+  - class TestPlanValidationFailure
+  - class TestPlanValidatorProtocol
+  - class TestStubPlanValidatorHappyPath
+  - class TestStubPlanValidatorFailureCases
+  - class TestPlanValidationFailureMetadata
+  - class TestGetPlanValidatorFactory
+**External Dependencies:**
+  - **Stdlib:** `builtins`, `unittest.mock.MagicMock`, `unittest.mock.patch`, `uuid.uuid4`
+  - **Third-party:** `pytest`
 
 ## tests/test_prompt_engine.py
 **Language:** Python  
 **Role:** test  
 **Role Justification:** filename starts with 'test_'  
-**Size:** 10.30 KB  
-**LOC:** 217  
+**Size:** 10.69 KB  
+**LOC:** 226  
 **TODOs/FIXMEs:** 0  
 **Declarations:** 5  
 **Top-level declarations:**

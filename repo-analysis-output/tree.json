@@ -86,6 +86,10 @@
         },
         {
           "type": "file",
+          "name": "plan_validator.py"
+        },
+        {
+          "type": "file",
           "name": "prompt_engine.py"
         }
       ]
@@ -143,6 +147,10 @@
         {
           "type": "file",
           "name": "test_plan_endpoint.py"
+        },
+        {
+          "type": "file",
+          "name": "test_plan_validator.py"
         },
         {
           "type": "file",

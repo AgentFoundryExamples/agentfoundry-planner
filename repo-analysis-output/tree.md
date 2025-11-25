@@ -18,6 +18,7 @@
   ├── context_driver.py
   ├── logging.py
   ├── models.py
+  ├── plan_validator.py
   └── prompt_engine.py
 ├── repo-analysis-output
   ├── dependencies.json
@@ -32,6 +33,7 @@
   ├── test_app.py
   ├── test_context_driver.py
   ├── test_plan_endpoint.py
+  ├── test_plan_validator.py
   └── test_prompt_engine.py
 ├── .gitignore
 ├── Dockerfile
