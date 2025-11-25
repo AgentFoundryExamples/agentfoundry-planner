@@ -315,20 +315,20 @@ class TestPlanValidationFailureMetadata:
         """Exception metadata is accessible after catching."""
         validator = StubPlanValidator()
 
-        try:
+        with pytest.raises(PlanValidationFailure) as exc_info:
             validator.validate(sample_planning_context, None)
-        except PlanValidationFailure as exc:
-            # Metadata should be accessible
-            assert exc.code == "INVALID_PAYLOAD_TYPE"
-            assert "NoneType" in exc.message
-            # Should be able to build error response
-            error_response = {
-                "error": {
-                    "code": exc.code,
-                    "message": exc.message,
-                }
+
+        # Metadata should be accessible
+        assert exc_info.value.code == "INVALID_PAYLOAD_TYPE"
+        assert "NoneType" in exc_info.value.message
+        # Should be able to build error response
+        error_response = {
+            "error": {
+                "code": exc_info.value.code,
+                "message": exc_info.value.message,
             }
-            assert error_response["error"]["code"] == "INVALID_PAYLOAD_TYPE"
+        }
+        assert error_response["error"]["code"] == "INVALID_PAYLOAD_TYPE"
 
     def test_exception_preserves_original_message_in_args(self) -> None:
         """Exception preserves message in args for standard Exception behavior."""
