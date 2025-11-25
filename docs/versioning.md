@@ -172,6 +172,41 @@ git push origin v0.1.0
 - Makefile with install/lint/test/run targets
 - Documentation for environment variables and Docker usage
 
+**Validation Pipeline (AF v1.1):**
+
+The AF v1.1 contract introduces a validator-driven pipeline that treats prompt output as untrusted data. This ensures that all responses are validated before being sent to clients.
+
+All `/v1/plan` requests flow through this pipeline:
+
+```
+PlanRequest → PlanningContext → PromptEngine → PlanValidator → PlanResponse
+```
+
+1. **PlanRequest**: Validated on entry (Pydantic schema enforcement)
+2. **PlanningContext**: Constructed from request_id, user_input, and project contexts
+3. **PromptEngine**: Generates candidate payload (untrusted)
+4. **PlanValidator**: Validates candidate payload structure and semantics
+5. **PlanResponse**: Returned only if validation passes
+
+**Error Handling Invariants (AF v1.1):**
+
+- **`request_id`**: Always present in responses (echoed from client or server-generated)
+- **`run_id`**: Present only in success responses; absent in all error cases
+- **Validation failures**: Return HTTP 422 with `ErrorResponse` schema
+- **Context/Engine failures**: Return HTTP 500 with `ErrorResponse` schema
+
+**Repository Coordinate Terminology:**
+
+Consumers referencing the old `repo` field should migrate to the new `owner/name/ref` terminology:
+
+| Old Field | New Field | Notes |
+|-----------|-----------|-------|
+| `owner` | `owner` | Unchanged |
+| `repo` | `name` | Repository name within the owner's namespace |
+| `ref: null` | `ref: "refs/heads/main"` | Explicit default instead of null |
+
+The canonical coordinate tuple is now `(owner, name, ref)` for all repository references.
+
 ## Plan Validator Module
 
 The `plan_validator` module provides the abstraction for validating candidate payloads from the prompt engine before they are serialized and sent to clients.
@@ -205,3 +240,65 @@ Request → ContextDriver → PromptEngine → PlanValidator → Response
 ```
 
 Future validators may perform deeper checks such as schema validation, business rule enforcement, or cross-referencing against the `PlanningContext`.
+
+## Response Invariants (AF v1.1)
+
+### run_id/request_id Semantics
+
+The AF v1.1 contract enforces strict rules about when `run_id` is present or absent:
+
+| Response Type | `request_id` | `run_id` | Description |
+|---------------|--------------|----------|-------------|
+| **Success (200)** | Present | Present | Planning completed successfully |
+| **Validation Error (422)** | Present | Absent | Input or plan validation failed |
+| **Server Error (5xx)** | Present | Absent | Context driver or engine failure |
+
+**Key Invariant**: `run_id` is only included in success responses. Error responses omit `run_id` to indicate that no planning run was created.
+
+### Error Response Structure
+
+All error responses follow the `ErrorResponse` schema:
+
+```json
+{
+  "error": {
+    "code": "ERROR_CODE",
+    "message": "Human-readable error description"
+  },
+  "request_id": "uuid"
+}
+```
+
+### Validator Failure Behavior
+
+When `PlanValidator.validate()` raises `PlanValidationFailure`:
+
+1. The API returns HTTP 422 (Unprocessable Entity)
+2. The response includes `request_id` for tracking
+3. The response omits `run_id` (no run was created)
+4. The error code and message from the exception are surfaced in the response
+
+Example validation failure response:
+
+```json
+{
+  "error": {
+    "code": "MISSING_REQUEST_ID",
+    "message": "Payload missing required key: request_id"
+  },
+  "request_id": "550e8400-e29b-41d4-a716-446655440000"
+}
+```
+
+## Future Extensions
+
+### validate_only Mode (Reserved)
+
+A future iteration may introduce an optional `validate_only` parameter on `/v1/plan` requests. When enabled:
+
+- The request would go through context fetching and prompt engine execution
+- Validation would be performed on the candidate payload
+- The response would indicate validation success/failure without persisting a run
+- This mode would be useful for testing and dry-run scenarios
+
+**Note**: This feature is not currently implemented. The parameter name and behavior are reserved for future use.

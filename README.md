@@ -608,6 +608,8 @@ The validator receives the full `PlanningContext` to enable cross-referencing va
 
 ## Model Contracts (AF v1.1)
 
+> **Migration Note**: If you are upgrading from a previous version, note that `RepositoryPointer.repo` has been renamed to `name`, and `ref` now defaults to `refs/heads/main` instead of `null`. See [docs/versioning.md](docs/versioning.md) for the complete migration guide.
+
 ### RepositoryPointer
 
 Reference to a specific repository location. The canonical coordinate for a repository consists of owner, name, and ref.
