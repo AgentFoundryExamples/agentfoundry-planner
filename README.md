@@ -195,7 +195,16 @@ Authorization: Bearer <token>
   "request_id": "uuid",
   "run_id": "uuid",
   "status": "completed",
-  "payload": null
+  "payload": {
+    "request_id": "uuid",
+    "repository": {
+      "owner": "myorg",
+      "name": "myrepo",
+      "ref": "refs/heads/main"
+    },
+    "status": "success",
+    "prompt_preview": "[STUB] Planning request for myorg/myrepo: ..."
+  }
 }
 ```
 
@@ -419,13 +428,19 @@ from planner_service.models import PlanningContext
 
 class MyCustomEngine:
     def run(self, ctx: PlanningContext) -> dict:
+        # Extract repository from the first project context (AF v1.1)
+        project = ctx.projects[0] if ctx.projects else None
+        repo_owner = project.repo_owner if project else ""
+        repo_name = project.repo_name if project else ""
+        repo_ref = project.ref if project else "refs/heads/main"
+        
         # Your implementation here (may call LLM, rules engine, etc.)
         return {
-            "request_id": "generated-uuid",
+            "request_id": str(ctx.request_id),
             "repository": {
-                "owner": ctx.project.repository.owner,
-                "repo": ctx.project.repository.repo,
-                "ref": ctx.project.repository.ref,
+                "owner": repo_owner,
+                "name": repo_name,
+                "ref": repo_ref,
             },
             "status": "success",
             "prompt_preview": "...",
