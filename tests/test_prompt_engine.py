@@ -107,15 +107,15 @@ class TestStubPromptEngine:
         assert repo["name"] == "test-repo"
         assert repo["ref"] == "refs/heads/main"
 
-    def test_run_returns_unique_request_id(
+    def test_run_returns_context_request_id(
         self, sample_planning_context: PlanningContext
     ) -> None:
-        """run returns unique request_id for each call."""
+        """run returns request_id from the PlanningContext."""
         engine = StubPromptEngine()
-        result1 = engine.run(sample_planning_context)
-        result2 = engine.run(sample_planning_context)
+        result = engine.run(sample_planning_context)
 
-        assert result1["request_id"] != result2["request_id"]
+        # The returned request_id should match the context's request_id
+        assert result["request_id"] == str(sample_planning_context.request_id)
 
     def test_run_returns_prompt_preview(
         self, sample_planning_context: PlanningContext

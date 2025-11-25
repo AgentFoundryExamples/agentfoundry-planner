@@ -19,7 +19,6 @@
 """Prompt engine abstraction for delegating plan generation to pluggable prompt logic (AF v1.1)."""
 
 from typing import Protocol, runtime_checkable
-from uuid import uuid4
 
 from planner_service.logging import get_logger
 from planner_service.models import PlanningContext
@@ -75,7 +74,8 @@ class StubPromptEngine:
             A dictionary with deterministic output including request_id,
             repository metadata, status, and a prompt preview.
         """
-        internal_request_id = str(uuid4())
+        # Use the request_id from the PlanningContext to maintain consistency
+        request_id = str(ctx.request_id)
 
         # Extract repository metadata from the first/primary project context
         project = ctx.projects[0] if ctx.projects else None
@@ -93,9 +93,8 @@ class StubPromptEngine:
         # Log request metadata for debugging
         self._logger.info(
             "stub_prompt_engine_run",
-            request_id=internal_request_id,
+            request_id=request_id,
             repository=repo_str,
-            planning_request_id=str(ctx.request_id),
         )
 
         # Build deterministic prompt preview (does not expose real prompts)
@@ -107,7 +106,7 @@ class StubPromptEngine:
             prompt_preview = f"{base_preview}{purpose}"
 
         return {
-            "request_id": internal_request_id,
+            "request_id": request_id,
             "repository": repository_metadata,
             "status": "success",
             "prompt_preview": prompt_preview,
