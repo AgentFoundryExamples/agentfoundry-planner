@@ -407,14 +407,14 @@ The stub engine returns a deterministic payload with the following structure:
     "ref": "refs/heads/main"
   },
   "status": "success",
-  "prompt_preview": "[STUB] Planning request for owner/repo: query..."
+  "prompt_preview": "[STUB] Planning request for owner/name: purpose text..."
 }
 ```
 
 - `request_id`: The request ID from PlanningContext (matches top-level response ID)
 - `repository`: Repository metadata from the planning context (uses AF v1.1 field names)
 - `status`: Always "success" for stub (real engines may return "failure")
-- `prompt_preview`: Stub preview that does not expose real prompts (useful for wiring tests)
+- `prompt_preview`: Stub preview showing `{repo_owner}/{repo_name}: {purpose}` (does not expose real prompts)
 
 ### Custom Engine Implementation
 
