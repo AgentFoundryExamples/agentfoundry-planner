@@ -10,6 +10,7 @@ FastAPI planner service for Agent Foundry. This service provides a planning API 
 - Cloud Run ready with health check endpoint
 - Environment-based configuration with safe defaults
 - Extensible context driver architecture with stub implementation
+- Extensible prompt engine architecture with stub implementation
 
 ## Project Structure
 
@@ -21,11 +22,13 @@ planner-service/
 │   ├── context_driver.py   # Context driver abstraction and factory
 │   ├── logging.py          # Structlog configuration
 │   ├── models.py           # Pydantic data models
+│   ├── prompt_engine.py    # Prompt engine abstraction and factory
 │   └── resources/
 │       └── mock_context.json  # Mock context fixtures
 ├── tests/
 │   ├── test_app.py         # Unit and integration tests
-│   └── test_context_driver.py  # Context driver tests
+│   ├── test_context_driver.py  # Context driver tests
+│   └── test_prompt_engine.py   # Prompt engine tests
 ├── Dockerfile              # Cloud Run deployment
 ├── pyproject.toml          # Project metadata and dependencies
 └── README.md
@@ -249,6 +252,92 @@ The `StubContextDriver` loads mock data from `planner_service/resources/mock_con
 
 To add custom mock data, edit the fixture file or provide repository-specific entries.
 
+## Prompt Engine Architecture
+
+The planner service uses an extensible prompt engine architecture to delegate plan generation to pluggable prompt logic. This allows for different implementations depending on the deployment environment.
+
+### PromptEngine Protocol
+
+The `PromptEngine` protocol defines the interface for prompt engines:
+
+```python
+class PromptEngine(Protocol):
+    def run(self, ctx: PlanningContext) -> dict:
+        """Generate plan output from the given planning context."""
+        ...
+```
+
+### Available Engines
+
+| Engine | Description |
+|--------|-------------|
+| `StubPromptEngine` | Returns deterministic payload without network or LLM calls |
+| `af_prompt_core.PromptEngineBackend` | (Private) Real LLM integration |
+
+### Engine Selection
+
+The `get_prompt_engine()` factory function selects the appropriate engine:
+
+1. Attempts to import `af_prompt_core.PromptEngineBackend`
+2. Falls back to `StubPromptEngine` on `ImportError`
+3. Logs the selected engine for debugging
+
+### StubPromptEngine Output Schema
+
+The stub engine returns a deterministic payload with the following structure:
+
+```json
+{
+  "request_id": "uuid-string",
+  "repository": {
+    "owner": "string",
+    "repo": "string",
+    "ref": "string|null"
+  },
+  "status": "success",
+  "prompt_preview": "[STUB] Planning request for owner/repo: query..."
+}
+```
+
+- `request_id`: Unique identifier generated for each request
+- `repository`: Repository metadata from the planning context
+- `status`: Always "success" for stub (real engines may return "failure")
+- `prompt_preview`: Stub preview that does not expose real prompts (useful for wiring tests)
+
+### Custom Engine Implementation
+
+To implement a custom prompt engine:
+
+1. Create a class implementing the `PromptEngine` protocol:
+
+```python
+from planner_service.prompt_engine import PromptEngine
+from planner_service.models import PlanningContext
+
+class MyCustomEngine:
+    def run(self, ctx: PlanningContext) -> dict:
+        # Your implementation here (may call LLM, rules engine, etc.)
+        return {
+            "request_id": "generated-uuid",
+            "repository": {
+                "owner": ctx.project.repository.owner,
+                "repo": ctx.project.repository.repo,
+                "ref": ctx.project.repository.ref,
+            },
+            "status": "success",
+            "prompt_preview": "...",
+        }
+```
+
+2. To use as the default engine, create a package named `af_prompt_core` with a `PromptEngineBackend` class, or modify the factory function in `prompt_engine.py`.
+
+### Error Handling
+
+When `PromptEngine.run()` raises an exception:
+- Errors propagate to the API response with status "failure"
+- The response omits `run_id` to indicate no run was created
+- Factory import failures are logged but the service continues running with the stub
+
 ## Model Contracts
 
 ### RepositoryPointer
@@ -331,6 +420,9 @@ Key log events emitted by the service:
 | `plan_request_received` | New planning request with request_id and run_id |
 | `context_driver_selected` | Private context driver selected |
 | `context_driver_fallback` | Fallback to stub context driver |
+| `prompt_engine_selected` | Private prompt engine selected |
+| `prompt_engine_fallback` | Fallback to stub prompt engine |
+| `stub_prompt_engine_run` | Stub prompt engine executed with request metadata |
 
 ## Running Tests
 
