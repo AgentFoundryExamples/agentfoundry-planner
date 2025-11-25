@@ -103,6 +103,23 @@ class TestPlanEndpointHappyPath:
         data = response.json()
         assert data["status"] == "completed"
 
+    def test_plan_returns_payload_on_success(self, client: TestClient) -> None:
+        """Plan endpoint returns engine result in payload when completed."""
+        payload = {
+            "repository": {"owner": "test-owner", "name": "test-repo"},
+            "user_input": _make_user_input(),
+        }
+        response = client.post("/v1/plan", json=payload)
+        assert response.status_code == 200
+        data = response.json()
+        assert data["status"] == "completed"
+        assert data["payload"] is not None
+        # Verify payload contains engine result fields
+        assert "status" in data["payload"]
+        assert data["payload"]["status"] == "success"
+        assert "repository" in data["payload"]
+        assert "prompt_preview" in data["payload"]
+
     def test_plan_returns_request_id_and_run_id(self, client: TestClient) -> None:
         """Plan endpoint returns valid request_id and run_id."""
         payload = {
@@ -317,6 +334,66 @@ class TestPlanEndpointValidation:
                 "dont": ["Fail"],
                 "nice": ["Be fast"],
                 "extra_key": "should fail",  # Extra key not allowed
+            },
+        }
+        response = client.post("/v1/plan", json=payload)
+        assert response.status_code == 422
+
+    def test_plan_rejects_empty_purpose(self, client: TestClient) -> None:
+        """Plan endpoint rejects empty purpose string."""
+        payload = {
+            "repository": {"owner": "test-owner", "name": "test-repo"},
+            "user_input": {
+                "purpose": "",  # Empty string should fail
+                "vision": "Test vision",
+                "must": ["Valid"],
+                "dont": ["Fail"],
+                "nice": ["Be fast"],
+            },
+        }
+        response = client.post("/v1/plan", json=payload)
+        assert response.status_code == 422
+
+    def test_plan_rejects_whitespace_only_purpose(self, client: TestClient) -> None:
+        """Plan endpoint rejects whitespace-only purpose string."""
+        payload = {
+            "repository": {"owner": "test-owner", "name": "test-repo"},
+            "user_input": {
+                "purpose": "   ",  # Whitespace only should fail
+                "vision": "Test vision",
+                "must": ["Valid"],
+                "dont": ["Fail"],
+                "nice": ["Be fast"],
+            },
+        }
+        response = client.post("/v1/plan", json=payload)
+        assert response.status_code == 422
+
+    def test_plan_rejects_empty_vision(self, client: TestClient) -> None:
+        """Plan endpoint rejects empty vision string."""
+        payload = {
+            "repository": {"owner": "test-owner", "name": "test-repo"},
+            "user_input": {
+                "purpose": "Test purpose",
+                "vision": "",  # Empty string should fail
+                "must": ["Valid"],
+                "dont": ["Fail"],
+                "nice": ["Be fast"],
+            },
+        }
+        response = client.post("/v1/plan", json=payload)
+        assert response.status_code == 422
+
+    def test_plan_rejects_whitespace_only_vision(self, client: TestClient) -> None:
+        """Plan endpoint rejects whitespace-only vision string."""
+        payload = {
+            "repository": {"owner": "test-owner", "name": "test-repo"},
+            "user_input": {
+                "purpose": "Test purpose",
+                "vision": "   ",  # Whitespace only should fail
+                "must": ["Valid"],
+                "dont": ["Fail"],
+                "nice": ["Be fast"],
             },
         }
         response = client.post("/v1/plan", json=payload)

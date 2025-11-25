@@ -298,7 +298,7 @@ async def create_plan(
         request_id=request_id,
         run_id=run_id,
         status=status,
-        payload=None,
+        payload=engine_result if status == "completed" else None,
     )
 
 

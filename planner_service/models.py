@@ -24,6 +24,24 @@ from uuid import UUID
 from pydantic import BaseModel, ConfigDict, Field, ValidationInfo, field_validator
 
 
+def _validate_non_empty_string(value: str, field_name: str = "field") -> str:
+    """Validate that a string is non-empty and not whitespace-only.
+
+    Args:
+        value: String to validate.
+        field_name: Name of the field being validated for error messages.
+
+    Returns:
+        The validated string.
+
+    Raises:
+        ValueError: If the string is empty or contains only whitespace.
+    """
+    if not value or not value.strip():
+        raise ValueError(f"'{field_name}' must be a non-empty string")
+    return value
+
+
 def _validate_non_empty_strings(value: list[str], field_name: str = "list") -> list[str]:
     """Validate that a list contains only non-empty, non-whitespace strings.
 
@@ -84,6 +102,12 @@ class UserInput(BaseModel):
     nice: list[str] = Field(
         ..., description="List of nice-to-have features or improvements"
     )
+
+    @field_validator("purpose", "vision")
+    @classmethod
+    def validate_string_fields(cls, v: str, info: ValidationInfo) -> str:
+        """Validate that string fields are non-empty."""
+        return _validate_non_empty_string(v, info.field_name)
 
     @field_validator("must", "dont", "nice")
     @classmethod
