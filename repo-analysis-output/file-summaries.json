@@ -1,6 +1,6 @@
 {
   "schema_version": "2.0",
-  "total_files": 6,
+  "total_files": 8,
   "files": [
     {
       "schema_version": "2.0",
@@ -32,17 +32,19 @@
       "role": "api",
       "role_justification": "filename contains 'api'",
       "metrics": {
-        "size_bytes": 3891,
-        "loc": 82,
+        "size_bytes": 6433,
+        "loc": 145,
         "todo_count": 0,
-        "declaration_count": 4
+        "declaration_count": 6
       },
       "structure": {
         "declarations": [
           "async function lifespan",
           "async function http_exception_handler",
           "async function health_check",
-          "async function create_plan"
+          "async function create_plan",
+          "function _verify_debug_auth",
+          "async function debug_context"
         ]
       },
       "dependencies": {
@@ -51,14 +53,51 @@
         "external": {
           "stdlib": [
             "contextlib.asynccontextmanager",
+            "os",
             "typing.AsyncGenerator",
             "uuid.uuid4"
           ],
           "third-party": [
             "fastapi.FastAPI",
             "fastapi.HTTPException",
+            "fastapi.Header",
             "fastapi.Request",
             "fastapi.responses.JSONResponse"
+          ]
+        }
+      }
+    },
+    {
+      "schema_version": "2.0",
+      "path": "planner_service/context_driver.py",
+      "language": "Python",
+      "role": "implementation",
+      "role_justification": "general implementation file (default classification)",
+      "metrics": {
+        "size_bytes": 4961,
+        "loc": 97,
+        "todo_count": 0,
+        "declaration_count": 3
+      },
+      "structure": {
+        "declarations": [
+          "class ContextDriver",
+          "class StubContextDriver",
+          "function get_context_driver"
+        ]
+      },
+      "dependencies": {
+        "imports": [],
+        "exports": [],
+        "external": {
+          "stdlib": [
+            "importlib.resources",
+            "json",
+            "typing.Protocol",
+            "typing.runtime_checkable"
+          ],
+          "third-party": [
+            "af_github_core.GitHubContextDriver"
           ]
         }
       }
@@ -190,6 +229,44 @@
           "stdlib": [
             "uuid.UUID",
             "uuid.uuid4"
+          ],
+          "third-party": [
+            "fastapi.testclient.TestClient",
+            "pytest"
+          ]
+        }
+      }
+    },
+    {
+      "schema_version": "2.0",
+      "path": "tests/test_context_driver.py",
+      "language": "Python",
+      "role": "test",
+      "role_justification": "filename starts with 'test_'",
+      "metrics": {
+        "size_bytes": 10863,
+        "loc": 196,
+        "todo_count": 0,
+        "declaration_count": 5
+      },
+      "structure": {
+        "declarations": [
+          "function client",
+          "class TestContextDriverProtocol",
+          "class TestStubContextDriver",
+          "class TestGetContextDriverFactory",
+          "class TestDebugContextEndpoint"
+        ]
+      },
+      "dependencies": {
+        "imports": [],
+        "exports": [],
+        "external": {
+          "stdlib": [
+            "builtins",
+            "sys",
+            "unittest.mock.MagicMock",
+            "unittest.mock.patch"
           ],
           "third-party": [
             "fastapi.testclient.TestClient",

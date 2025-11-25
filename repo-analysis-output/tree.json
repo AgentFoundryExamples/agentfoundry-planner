@@ -41,12 +41,26 @@
       "name": "planner_service",
       "children": [
         {
+          "type": "directory",
+          "name": "resources",
+          "children": [
+            {
+              "type": "file",
+              "name": "mock_context.json"
+            }
+          ]
+        },
+        {
           "type": "file",
           "name": "__init__.py"
         },
         {
           "type": "file",
           "name": "api.py"
+        },
+        {
+          "type": "file",
+          "name": "context_driver.py"
         },
         {
           "type": "file",
@@ -69,6 +83,14 @@
         {
           "type": "file",
           "name": "dependencies.md"
+        },
+        {
+          "type": "file",
+          "name": "file-summaries.json"
+        },
+        {
+          "type": "file",
+          "name": "file-summaries.md"
         },
         {
           "type": "file",
@@ -95,6 +117,10 @@
         {
           "type": "file",
           "name": "test_app.py"
+        },
+        {
+          "type": "file",
+          "name": "test_context_driver.py"
         }
       ]
     },

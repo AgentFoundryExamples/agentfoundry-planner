@@ -16,14 +16,32 @@
       "external_dependencies": {
         "stdlib": [
           "contextlib.asynccontextmanager",
+          "os",
           "typing.AsyncGenerator",
           "uuid.uuid4"
         ],
         "third-party": [
           "fastapi.FastAPI",
           "fastapi.HTTPException",
+          "fastapi.Header",
           "fastapi.Request",
           "fastapi.responses.JSONResponse"
+        ]
+      }
+    },
+    {
+      "id": "planner_service/context_driver.py",
+      "path": "planner_service/context_driver.py",
+      "type": "file",
+      "external_dependencies": {
+        "stdlib": [
+          "importlib.resources",
+          "json",
+          "typing.Protocol",
+          "typing.runtime_checkable"
+        ],
+        "third-party": [
+          "af_github_core.GitHubContextDriver"
         ]
       }
     },
@@ -80,6 +98,23 @@
           "pytest"
         ]
       }
+    },
+    {
+      "id": "tests/test_context_driver.py",
+      "path": "tests/test_context_driver.py",
+      "type": "file",
+      "external_dependencies": {
+        "stdlib": [
+          "builtins",
+          "sys",
+          "unittest.mock.MagicMock",
+          "unittest.mock.patch"
+        ],
+        "third-party": [
+          "fastapi.testclient.TestClient",
+          "pytest"
+        ]
+      }
     }
   ],
   "edges": [
@@ -89,10 +124,22 @@
     },
     {
       "source": "planner_service/api.py",
+      "target": "planner_service/context_driver.py"
+    },
+    {
+      "source": "planner_service/api.py",
       "target": "planner_service/logging.py"
     },
     {
       "source": "planner_service/api.py",
+      "target": "planner_service/models.py"
+    },
+    {
+      "source": "planner_service/context_driver.py",
+      "target": "planner_service/logging.py"
+    },
+    {
+      "source": "planner_service/context_driver.py",
       "target": "planner_service/models.py"
     },
     {
@@ -106,22 +153,43 @@
     {
       "source": "tests/test_app.py",
       "target": "planner_service/logging.py"
+    },
+    {
+      "source": "tests/test_context_driver.py",
+      "target": "planner_service/api.py"
+    },
+    {
+      "source": "tests/test_context_driver.py",
+      "target": "planner_service/context_driver.py"
+    },
+    {
+      "source": "tests/test_context_driver.py",
+      "target": "planner_service/models.py"
     }
   ],
   "external_dependencies_summary": {
     "stdlib": [
+      "builtins",
       "contextlib.asynccontextmanager",
+      "importlib.resources",
+      "json",
       "logging",
       "os",
       "sys",
       "typing.AsyncGenerator",
       "typing.Optional",
+      "typing.Protocol",
+      "typing.runtime_checkable",
+      "unittest.mock.MagicMock",
+      "unittest.mock.patch",
       "uuid.UUID",
       "uuid.uuid4"
     ],
     "third-party": [
+      "af_github_core.GitHubContextDriver",
       "fastapi.FastAPI",
       "fastapi.HTTPException",
+      "fastapi.Header",
       "fastapi.Request",
       "fastapi.responses.JSONResponse",
       "fastapi.testclient.TestClient",
@@ -130,7 +198,7 @@
       "pytest",
       "structlog"
     ],
-    "stdlib_count": 8,
-    "third-party_count": 9
+    "stdlib_count": 15,
+    "third-party_count": 11
   }
 }

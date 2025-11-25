@@ -4,7 +4,7 @@ Heuristic summaries of source files based on filenames, extensions, and paths.
 
 Schema Version: 2.0
 
-Total files: 6
+Total files: 8
 
 ## planner_service/__init__.py
 **Language:** Python  
@@ -18,18 +18,36 @@ Total files: 6
 **Language:** Python  
 **Role:** api  
 **Role Justification:** filename contains 'api'  
-**Size:** 3.80 KB  
-**LOC:** 82  
+**Size:** 6.28 KB  
+**LOC:** 145  
 **TODOs/FIXMEs:** 0  
-**Declarations:** 4  
+**Declarations:** 6  
 **Top-level declarations:**
   - async function lifespan
   - async function http_exception_handler
   - async function health_check
   - async function create_plan
+  - function _verify_debug_auth
+  - async function debug_context
 **External Dependencies:**
-  - **Stdlib:** `contextlib.asynccontextmanager`, `typing.AsyncGenerator`, `uuid.uuid4`
-  - **Third-party:** `fastapi.FastAPI`, `fastapi.HTTPException`, `fastapi.Request`, `fastapi.responses.JSONResponse`
+  - **Stdlib:** `contextlib.asynccontextmanager`, `os`, `typing.AsyncGenerator`, `uuid.uuid4`
+  - **Third-party:** `fastapi.FastAPI`, `fastapi.HTTPException`, `fastapi.Header`, `fastapi.Request`, `fastapi.responses.JSONResponse`
+
+## planner_service/context_driver.py
+**Language:** Python  
+**Role:** implementation  
+**Role Justification:** general implementation file (default classification)  
+**Size:** 4.84 KB  
+**LOC:** 97  
+**TODOs/FIXMEs:** 0  
+**Declarations:** 3  
+**Top-level declarations:**
+  - class ContextDriver
+  - class StubContextDriver
+  - function get_context_driver
+**External Dependencies:**
+  - **Stdlib:** `importlib.resources`, `json`, `typing.Protocol`, `typing.runtime_checkable`
+  - **Third-party:** `af_github_core.GitHubContextDriver`
 
 ## planner_service/logging.py
 **Language:** Python  
@@ -95,4 +113,22 @@ Total files: 6
   - class TestLogging
 **External Dependencies:**
   - **Stdlib:** `uuid.UUID`, `uuid.uuid4`
+  - **Third-party:** `fastapi.testclient.TestClient`, `pytest`
+
+## tests/test_context_driver.py
+**Language:** Python  
+**Role:** test  
+**Role Justification:** filename starts with 'test_'  
+**Size:** 10.61 KB  
+**LOC:** 196  
+**TODOs/FIXMEs:** 0  
+**Declarations:** 5  
+**Top-level declarations:**
+  - function client
+  - class TestContextDriverProtocol
+  - class TestStubContextDriver
+  - class TestGetContextDriverFactory
+  - class TestDebugContextEndpoint
+**External Dependencies:**
+  - **Stdlib:** `builtins`, `sys`, `unittest.mock.MagicMock`, `unittest.mock.patch`
   - **Third-party:** `fastapi.testclient.TestClient`, `pytest`
