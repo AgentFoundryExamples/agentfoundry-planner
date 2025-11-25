@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # ============================================================
-"""Prompt engine abstraction for delegating plan generation to pluggable prompt logic."""
+"""Prompt engine abstraction for delegating plan generation to pluggable prompt logic (AF v1.1)."""
 
 from typing import Protocol, runtime_checkable
 from uuid import uuid4
@@ -43,7 +43,7 @@ class PromptEngine(Protocol):
         Returns:
             A dictionary containing the plan output with keys:
             - request_id: Unique identifier for this request
-            - repository: Repository metadata (owner, repo, ref)
+            - repository: Repository metadata (owner, name, ref)
             - status: Status of the plan generation ("success" or "failure")
             - prompt_preview: Preview of the prompt that would be sent (stub only)
 
@@ -69,40 +69,45 @@ class StubPromptEngine:
         """Generate deterministic plan output from the given context.
 
         Args:
-            ctx: The planning context containing project and user input.
+            ctx: The planning context containing project and user input (AF v1.1).
 
         Returns:
             A dictionary with deterministic output including request_id,
             repository metadata, status, and a prompt preview.
         """
-        request_id = str(uuid4())
+        internal_request_id = str(uuid4())
 
         # Extract repository metadata from the first/primary project context
-        repo = ctx.project.repository
-        repository_metadata = {
-            "owner": repo.owner,
-            "repo": repo.repo,
-            "ref": repo.ref,
-        }
+        project = ctx.projects[0] if ctx.projects else None
+        if project:
+            repository_metadata = {
+                "owner": project.repo_owner,
+                "name": project.repo_name,
+                "ref": project.ref,
+            }
+            repo_str = f"{project.repo_owner}/{project.repo_name}"
+        else:
+            repository_metadata = {"owner": "", "name": "", "ref": ""}
+            repo_str = "unknown/unknown"
 
         # Log request metadata for debugging
         self._logger.info(
             "stub_prompt_engine_run",
-            request_id=request_id,
-            repository=f"{repo.owner}/{repo.repo}",
-            session_id=ctx.session_id,
+            request_id=internal_request_id,
+            repository=repo_str,
+            planning_request_id=str(ctx.request_id),
         )
 
         # Build deterministic prompt preview (does not expose real prompts)
-        base_preview = f"[STUB] Planning request for {repo.owner}/{repo.repo}: "
-        query = ctx.user_input.query
-        if len(query) > 50:
-            prompt_preview = f"{base_preview}{query[:50]}..."
+        base_preview = f"[STUB] Planning request for {repo_str}: "
+        purpose = ctx.user_input.purpose
+        if len(purpose) > 50:
+            prompt_preview = f"{base_preview}{purpose[:50]}..."
         else:
-            prompt_preview = f"{base_preview}{query}"
+            prompt_preview = f"{base_preview}{purpose}"
 
         return {
-            "request_id": request_id,
+            "request_id": internal_request_id,
             "repository": repository_metadata,
             "status": "success",
             "prompt_preview": prompt_preview,

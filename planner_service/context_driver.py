@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # ============================================================
-"""Context driver abstraction for fetching repository context."""
+"""Context driver abstraction for fetching repository context (AF v1.1)."""
 
 import json
 from importlib import resources
@@ -97,10 +97,10 @@ class StubContextDriver:
             repo: The repository to fetch context for.
 
         Returns:
-            ProjectContext with mock data from fixtures.
+            ProjectContext with mock data from fixtures (AF v1.1 format).
         """
         fixtures = self._load_fixtures()
-        repo_key = f"{repo.owner}/{repo.repo}"
+        repo_key = f"{repo.owner}/{repo.name}"
 
         # Check for specific repository data
         if repo_key in fixtures.get("repositories", {}):
@@ -113,10 +113,14 @@ class StubContextDriver:
                 repository=repo_key,
             )
 
+        # Return ProjectContext in AF v1.1 format
         return ProjectContext(
-            repository=repo,
-            default_branch=repo_data.get("default_branch"),
-            languages=repo_data.get("languages"),
+            repo_owner=repo.owner,
+            repo_name=repo.name,
+            ref=repo.ref,
+            tree_json=repo_data.get("tree_json"),
+            dependency_json=repo_data.get("dependency_json"),
+            summary_json=repo_data.get("summary_json"),
         )
 
 

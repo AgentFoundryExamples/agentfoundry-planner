@@ -170,17 +170,20 @@ The endpoint accepts an optional `Authorization` header with a Bearer token. If 
 Authorization: Bearer <token>
 ```
 
-**Request Body:**
+**Request Body (AF v1.1):**
 ```json
 {
   "repository": {
     "owner": "string",
-    "repo": "string",
-    "ref": "string (optional)"
+    "name": "string",
+    "ref": "string (default: refs/heads/main)"
   },
   "user_input": {
-    "query": "string",
-    "context": "string (optional)"
+    "purpose": "string",
+    "vision": "string",
+    "must": ["string", ...],
+    "dont": ["string", ...],
+    "nice": ["string", ...]
   },
   "request_id": "uuid (optional)"
 }
@@ -192,7 +195,7 @@ Authorization: Bearer <token>
   "request_id": "uuid",
   "run_id": "uuid",
   "status": "completed",
-  "steps": null
+  "payload": null
 }
 ```
 
@@ -219,11 +222,15 @@ curl -X POST http://localhost:8080/v1/plan \
   -d '{
     "repository": {
       "owner": "myorg",
-      "repo": "myrepo",
-      "ref": "main"
+      "name": "myrepo",
+      "ref": "refs/heads/main"
     },
     "user_input": {
-      "query": "Add user authentication feature"
+      "purpose": "Add user authentication feature",
+      "vision": "Secure login system with session management",
+      "must": ["Implement login endpoint", "Implement logout endpoint"],
+      "dont": ["Store passwords in plaintext"],
+      "nice": ["Add remember me functionality"]
     }
   }'
 ```
@@ -246,25 +253,24 @@ Debug endpoint to fetch repository context using the configured context driver. 
 Authorization: Bearer <DEBUG_AUTH_TOKEN>
 ```
 
-**Request Body:**
+**Request Body (AF v1.1):**
 ```json
 {
   "owner": "string",
-  "repo": "string",
-  "ref": "string (optional)"
+  "name": "string",
+  "ref": "string (default: refs/heads/main)"
 }
 ```
 
-**Response:**
+**Response (AF v1.1):**
 ```json
 {
-  "repository": {
-    "owner": "string",
-    "repo": "string",
-    "ref": "string"
-  },
-  "default_branch": "main",
-  "languages": ["python"]
+  "repo_owner": "string",
+  "repo_name": "string",
+  "ref": "refs/heads/main",
+  "tree_json": null,
+  "dependency_json": null,
+  "summary_json": null
 }
 ```
 
@@ -310,11 +316,14 @@ from planner_service.models import ProjectContext, RepositoryPointer
 
 class MyCustomDriver:
     def fetch_context(self, repo: RepositoryPointer) -> ProjectContext:
-        # Your implementation here
+        # Your implementation here (AF v1.1 format)
         return ProjectContext(
-            repository=repo,
-            default_branch="main",
-            languages=["python"],
+            repo_owner=repo.owner,
+            repo_name=repo.name,
+            ref=repo.ref,
+            tree_json=None,
+            dependency_json=None,
+            summary_json=None,
         )
 ```
 
@@ -327,20 +336,22 @@ The `StubContextDriver` loads mock data from `planner_service/resources/mock_con
 ```json
 {
   "default": {
-    "default_branch": "main",
-    "languages": ["python"]
+    "tree_json": null,
+    "dependency_json": null,
+    "summary_json": null
   },
   "repositories": {
     "owner/repo": {
-      "default_branch": "develop",
-      "languages": ["typescript", "rust"]
+      "tree_json": "...",
+      "dependency_json": "...",
+      "summary_json": "..."
     }
   }
 }
 ```
 
 - `default`: Default context returned for unknown repositories
-- `repositories`: Specific context for known repositories (keyed by `owner/repo`)
+- `repositories`: Specific context for known repositories (keyed by `owner/name`)
 
 To add custom mock data, edit the fixture file or provide repository-specific entries.
 
@@ -430,26 +441,33 @@ When `PromptEngine.run()` raises an exception:
 - The response omits `run_id` to indicate no run was created
 - Factory import failures are logged but the service continues running with the stub
 
-## Model Contracts
+## Model Contracts (AF v1.1)
 
 ### RepositoryPointer
 
-Reference to a specific repository location.
+Reference to a specific repository location. The canonical coordinate for a repository consists of owner, name, and ref.
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `owner` | string | Yes | Repository owner (user or organization) |
-| `repo` | string | Yes | Repository name |
-| `ref` | string | No | Git ref (branch, tag, or commit SHA) |
+| Field | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `owner` | string | Yes | - | Repository owner (user or organization) |
+| `name` | string | Yes | - | Repository name |
+| `ref` | string | No | `refs/heads/main` | Git ref (branch, tag, or commit SHA) |
 
 ### UserInput
 
-User-provided input for the planning request.
+User-provided input for the planning request. Enforces exactly five required keys with strict typing and validation for string lists.
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `query` | string | Yes | The user's planning query or request |
-| `context` | string | No | Additional context provided by the user |
+| `purpose` | string | Yes | The purpose or goal of the planning request |
+| `vision` | string | Yes | The desired end state or vision for the project |
+| `must` | list[string] | Yes | List of requirements that must be fulfilled |
+| `dont` | list[string] | Yes | List of constraints or things to avoid |
+| `nice` | list[string] | Yes | List of nice-to-have features or improvements |
+
+**Validation Rules:**
+- All five keys are required; extra keys are rejected
+- List entries must be non-empty strings (no empty or whitespace-only values)
 
 ### PlanRequest
 
@@ -470,27 +488,30 @@ Response model for a successful plan generation.
 | `request_id` | UUID | Request ID (echoed from request or server-generated) |
 | `run_id` | UUID | Unique identifier for this planning run |
 | `status` | string | Status of the planning operation |
-| `steps` | list[PlanStep] | Generated plan steps (when status is 'completed') |
+| `payload` | dict | Plan payload (when status is 'completed') |
 
-### ProjectContext
+### ProjectContext (Internal)
 
-Context about the project being planned.
+Internal artifact carrier for project context. Decoupled from request types for internal runtime use.
+
+| Field | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `repo_owner` | string | Yes | - | Repository owner (user or organization) |
+| `repo_name` | string | Yes | - | Repository name |
+| `ref` | string | No | `refs/heads/main` | Git ref (branch, tag, or commit SHA) |
+| `tree_json` | string | No | null | JSON string containing repository tree structure |
+| `dependency_json` | string | No | null | JSON string containing dependency information |
+| `summary_json` | string | No | null | JSON string containing repository summary |
+
+### PlanningContext (Internal)
+
+Full context for a planning operation. Links request_id, UserInput, and a list of ProjectContext entries.
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `repository` | RepositoryPointer | Yes | Target repository |
-| `default_branch` | string | No | Default branch of the repository |
-| `languages` | list[string] | No | Primary programming languages |
-
-### PlanningContext
-
-Full context for a planning operation.
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `project` | ProjectContext | Yes | Project context |
+| `request_id` | UUID | Yes | Request identifier for tracking |
 | `user_input` | UserInput | Yes | User's input |
-| `session_id` | string | No | Session identifier for tracking |
+| `projects` | list[ProjectContext] | Yes | List of project contexts for planning |
 
 ## Logging
 

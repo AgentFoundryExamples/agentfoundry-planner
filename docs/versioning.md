@@ -85,8 +85,80 @@ git push origin v0.1.0
 
 ## Changelog
 
-### v0.1.0 (Initial Release)
+### v0.1.0 (AF v1.1 Contract Update)
 
+**Breaking Changes:**
+- **RepositoryPointer**: Renamed `repo` field to `name`. The canonical coordinate is now `(owner, name, ref)`.
+- **RepositoryPointer**: `ref` field now defaults to `refs/heads/main` instead of `null`.
+- **UserInput**: Complete schema change. Now requires exactly five keys:
+  - `purpose` (string): The purpose or goal of the planning request
+  - `vision` (string): The desired end state or vision for the project
+  - `must` (list[string]): List of requirements that must be fulfilled
+  - `dont` (list[string]): List of constraints or things to avoid
+  - `nice` (list[string]): List of nice-to-have features or improvements
+  - Old fields `query` and `context` are no longer supported.
+- **UserInput**: Strict validation enforces non-empty strings in list entries.
+- **UserInput**: Extra keys are rejected (strict schema enforcement).
+- **ProjectContext**: Redesigned as internal artifact carrier:
+  - New fields: `repo_owner`, `repo_name`, `ref`, `tree_json`, `dependency_json`, `summary_json`
+  - Old fields `repository`, `default_branch`, `languages` are no longer supported.
+- **PlanningContext**: Redesigned structure:
+  - New fields: `request_id`, `user_input`, `projects` (list of ProjectContext)
+  - Old fields `project`, `session_id` are no longer supported.
+- **PlanResponse**: Replaced `steps` field with `payload` field.
+
+**Migration Guide:**
+
+1. **RepositoryPointer**:
+   ```python
+   # Before
+   {"owner": "org", "repo": "name", "ref": null}
+   
+   # After
+   {"owner": "org", "name": "name", "ref": "refs/heads/main"}
+   ```
+
+2. **UserInput**:
+   ```python
+   # Before
+   {"query": "Add feature X", "context": "Optional context"}
+   
+   # After
+   {
+       "purpose": "Add feature X",
+       "vision": "End state description",
+       "must": ["Requirement 1", "Requirement 2"],
+       "dont": ["Constraint 1"],
+       "nice": ["Nice-to-have 1"]
+   }
+   ```
+
+3. **ProjectContext** (internal):
+   ```python
+   # Before
+   {"repository": {...}, "default_branch": "main", "languages": ["python"]}
+   
+   # After
+   {
+       "repo_owner": "org",
+       "repo_name": "name",
+       "ref": "refs/heads/main",
+       "tree_json": null,
+       "dependency_json": null,
+       "summary_json": null
+   }
+   ```
+
+4. **PlanningContext** (internal):
+   ```python
+   # Before
+   {"project": {...}, "user_input": {...}, "session_id": "..."}
+   
+   # After
+   {"request_id": "uuid", "user_input": {...}, "projects": [{...}]}
+   ```
+
+**Features:**
 - FastAPI-based REST API with OpenAPI documentation
 - Pydantic models for request/response validation
 - Structured logging with structlog (service-tagged)

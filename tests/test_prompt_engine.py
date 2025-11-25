@@ -16,17 +16,17 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # ============================================================
-"""Tests for prompt engine abstraction and stub implementation."""
+"""Tests for prompt engine abstraction and stub implementation (AF v1.1)."""
 
 import builtins
 from unittest.mock import MagicMock, patch
+from uuid import uuid4
 
 import pytest
 
 from planner_service.models import (
     PlanningContext,
     ProjectContext,
-    RepositoryPointer,
     UserInput,
 )
 from planner_service.prompt_engine import (
@@ -38,22 +38,23 @@ from planner_service.prompt_engine import (
 
 @pytest.fixture
 def sample_planning_context() -> PlanningContext:
-    """Create a sample planning context for tests."""
+    """Create a sample planning context for tests (AF v1.1)."""
     return PlanningContext(
-        project=ProjectContext(
-            repository=RepositoryPointer(
-                owner="test-owner",
-                repo="test-repo",
-                ref="main",
-            ),
-            default_branch="main",
-            languages=["python"],
-        ),
+        request_id=uuid4(),
         user_input=UserInput(
-            query="Create a new feature for user authentication",
-            context="Additional context about the feature",
+            purpose="Create a new feature for user authentication",
+            vision="A fully functional auth system",
+            must=["Implement login", "Implement logout"],
+            dont=["Use deprecated APIs"],
+            nice=["Add remember me feature"],
         ),
-        session_id="test-session-123",
+        projects=[
+            ProjectContext(
+                repo_owner="test-owner",
+                repo_name="test-repo",
+                ref="refs/heads/main",
+            ),
+        ],
     )
 
 
@@ -71,7 +72,7 @@ class TestPromptEngineProtocol:
 
 
 class TestStubPromptEngine:
-    """Tests for the StubPromptEngine implementation."""
+    """Tests for the StubPromptEngine implementation (AF v1.1)."""
 
     def test_run_returns_dict_with_required_keys(
         self, sample_planning_context: PlanningContext
@@ -97,14 +98,14 @@ class TestStubPromptEngine:
     def test_run_returns_repository_metadata(
         self, sample_planning_context: PlanningContext
     ) -> None:
-        """run includes repository metadata in output."""
+        """run includes repository metadata in output (AF v1.1)."""
         engine = StubPromptEngine()
         result = engine.run(sample_planning_context)
 
         repo = result["repository"]
         assert repo["owner"] == "test-owner"
-        assert repo["repo"] == "test-repo"
-        assert repo["ref"] == "main"
+        assert repo["name"] == "test-repo"
+        assert repo["ref"] == "refs/heads/main"
 
     def test_run_returns_unique_request_id(
         self, sample_planning_context: PlanningContext
@@ -128,14 +129,25 @@ class TestStubPromptEngine:
         assert "test-owner/test-repo" in preview
         assert "user authentication" in preview
 
-    def test_run_truncates_long_queries_in_preview(self) -> None:
-        """run truncates long queries in prompt preview."""
-        long_query = "A" * 100
+    def test_run_truncates_long_purpose_in_preview(self) -> None:
+        """run truncates long purpose in prompt preview."""
+        long_purpose = "A" * 100
         ctx = PlanningContext(
-            project=ProjectContext(
-                repository=RepositoryPointer(owner="owner", repo="repo", ref=None),
+            request_id=uuid4(),
+            user_input=UserInput(
+                purpose=long_purpose,
+                vision="Test vision",
+                must=["Test"],
+                dont=["Test"],
+                nice=["Test"],
             ),
-            user_input=UserInput(query=long_query),
+            projects=[
+                ProjectContext(
+                    repo_owner="owner",
+                    repo_name="repo",
+                    ref="refs/heads/main",
+                ),
+            ],
         )
 
         engine = StubPromptEngine()
@@ -143,20 +155,6 @@ class TestStubPromptEngine:
 
         preview = result["prompt_preview"]
         assert "..." in preview
-
-    def test_run_handles_none_ref(self) -> None:
-        """run handles repository without ref."""
-        ctx = PlanningContext(
-            project=ProjectContext(
-                repository=RepositoryPointer(owner="owner", repo="repo", ref=None),
-            ),
-            user_input=UserInput(query="Test query"),
-        )
-
-        engine = StubPromptEngine()
-        result = engine.run(ctx)
-
-        assert result["repository"]["ref"] is None
 
     def test_run_deterministic_output_structure(
         self, sample_planning_context: PlanningContext
@@ -181,13 +179,12 @@ class TestStubPromptEngine:
             mock_get_logger.return_value = mock_logger
 
             engine = StubPromptEngine()
-            result = engine.run(sample_planning_context)
+            engine.run(sample_planning_context)
 
             mock_logger.info.assert_called_once()
             call_args = mock_logger.info.call_args
             assert call_args[0][0] == "stub_prompt_engine_run"
             assert call_args[1]["repository"] == "test-owner/test-repo"
-            assert call_args[1]["session_id"] == "test-session-123"
 
 
 class TestGetPromptEngineFactory:
@@ -265,25 +262,32 @@ class TestGetPromptEngineFactory:
 
 
 class TestMultipleProjectContextHandling:
-    """Tests for handling multiple ProjectContext entries."""
+    """Tests for handling multiple ProjectContext entries (AF v1.1)."""
 
     def test_uses_first_project_context(self) -> None:
-        """Stub uses the project context from the PlanningContext."""
+        """Stub uses the first project context from the PlanningContext."""
         ctx = PlanningContext(
-            project=ProjectContext(
-                repository=RepositoryPointer(
-                    owner="first-owner",
-                    repo="first-repo",
-                    ref="feature-1",
-                ),
+            request_id=uuid4(),
+            user_input=UserInput(
+                purpose="Test query",
+                vision="Test vision",
+                must=["Test"],
+                dont=["Fail"],
+                nice=["Be fast"],
             ),
-            user_input=UserInput(query="Test query"),
+            projects=[
+                ProjectContext(
+                    repo_owner="first-owner",
+                    repo_name="first-repo",
+                    ref="refs/heads/feature-1",
+                ),
+            ],
         )
 
         engine = StubPromptEngine()
         result = engine.run(ctx)
 
-        # Should use the project context
+        # Should use the first project context
         assert result["repository"]["owner"] == "first-owner"
-        assert result["repository"]["repo"] == "first-repo"
-        assert result["repository"]["ref"] == "feature-1"
+        assert result["repository"]["name"] == "first-repo"
+        assert result["repository"]["ref"] == "refs/heads/feature-1"
