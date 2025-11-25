@@ -9,20 +9,25 @@ FastAPI planner service for Agent Foundry. This service provides a planning API 
 - Structured logging with structlog (service-tagged)
 - Cloud Run ready with health check endpoint
 - Environment-based configuration with safe defaults
+- Extensible context driver architecture with stub implementation
 
 ## Project Structure
 
 ```
 planner-service/
 ├── planner_service/
-│   ├── __init__.py      # Package initialization
-│   ├── api.py           # FastAPI application and endpoints
-│   ├── logging.py       # Structlog configuration
-│   └── models.py        # Pydantic data models
+│   ├── __init__.py         # Package initialization
+│   ├── api.py              # FastAPI application and endpoints
+│   ├── context_driver.py   # Context driver abstraction and factory
+│   ├── logging.py          # Structlog configuration
+│   ├── models.py           # Pydantic data models
+│   └── resources/
+│       └── mock_context.json  # Mock context fixtures
 ├── tests/
-│   └── test_app.py      # Unit and integration tests
-├── Dockerfile           # Cloud Run deployment
-├── pyproject.toml       # Project metadata and dependencies
+│   ├── test_app.py         # Unit and integration tests
+│   └── test_context_driver.py  # Context driver tests
+├── Dockerfile              # Cloud Run deployment
+├── pyproject.toml          # Project metadata and dependencies
 └── README.md
 ```
 
@@ -71,6 +76,7 @@ docker run -p 8080:8080 planner-service
 |----------|---------|-------------|
 | `PORT` | `8080` | Server port (used by Cloud Run) |
 | `LOG_LEVEL` | `INFO` | Logging level (DEBUG, INFO, WARNING, ERROR) |
+| `DEBUG_AUTH_TOKEN` | `debug-token-stub` | Token for debug endpoint authentication |
 
 Missing environment variables fall back to safe defaults without crashing server startup.
 
@@ -131,6 +137,117 @@ Create a new planning request.
 
 - Swagger UI: `http://localhost:8080/docs`
 - ReDoc: `http://localhost:8080/redoc`
+
+### Debug Context (Optional)
+
+```
+POST /v1/debug/context
+```
+
+Debug endpoint to fetch repository context using the configured context driver. Protected by bearer token authentication.
+
+**Headers:**
+```
+Authorization: Bearer <DEBUG_AUTH_TOKEN>
+```
+
+**Request Body:**
+```json
+{
+  "owner": "string",
+  "repo": "string",
+  "ref": "string (optional)"
+}
+```
+
+**Response:**
+```json
+{
+  "repository": {
+    "owner": "string",
+    "repo": "string",
+    "ref": "string"
+  },
+  "default_branch": "main",
+  "languages": ["python"]
+}
+```
+
+## Context Driver Architecture
+
+The planner service uses an extensible context driver architecture to fetch repository context. This allows for different implementations depending on the deployment environment.
+
+### ContextDriver Protocol
+
+The `ContextDriver` protocol defines the interface for context drivers:
+
+```python
+class ContextDriver(Protocol):
+    def fetch_context(self, repo: RepositoryPointer) -> ProjectContext:
+        """Fetch project context for the given repository."""
+        ...
+```
+
+### Available Drivers
+
+| Driver | Description |
+|--------|-------------|
+| `StubContextDriver` | Returns deterministic mock data from bundled fixtures |
+| `af_github_core.GitHubContextDriver` | (Private) Real GitHub API integration |
+
+### Driver Selection
+
+The `get_context_driver()` factory function selects the appropriate driver:
+
+1. Attempts to import `af_github_core.GitHubContextDriver`
+2. Falls back to `StubContextDriver` on `ImportError`
+3. Logs the selected driver for debugging
+
+### Custom Driver Implementation
+
+To implement a custom context driver:
+
+1. Create a class implementing the `ContextDriver` protocol:
+
+```python
+from planner_service.context_driver import ContextDriver
+from planner_service.models import ProjectContext, RepositoryPointer
+
+class MyCustomDriver:
+    def fetch_context(self, repo: RepositoryPointer) -> ProjectContext:
+        # Your implementation here
+        return ProjectContext(
+            repository=repo,
+            default_branch="main",
+            languages=["python"],
+        )
+```
+
+2. To use as the default driver, create a package named `af_github_core` with a `GitHubContextDriver` class, or modify the factory function in `context_driver.py`.
+
+### Mock Context Fixtures
+
+The `StubContextDriver` loads mock data from `planner_service/resources/mock_context.json`. The fixture format is:
+
+```json
+{
+  "default": {
+    "default_branch": "main",
+    "languages": ["python"]
+  },
+  "repositories": {
+    "owner/repo": {
+      "default_branch": "develop",
+      "languages": ["typescript", "rust"]
+    }
+  }
+}
+```
+
+- `default`: Default context returned for unknown repositories
+- `repositories`: Specific context for known repositories (keyed by `owner/repo`)
+
+To add custom mock data, edit the fixture file or provide repository-specific entries.
 
 ## Model Contracts
 
@@ -212,6 +329,8 @@ Key log events emitted by the service:
 | `planner_service_starting` | Service startup with version info |
 | `planner_service_shutting_down` | Service shutdown |
 | `plan_request_received` | New planning request with request_id and run_id |
+| `context_driver_selected` | Private context driver selected |
+| `context_driver_fallback` | Fallback to stub context driver |
 
 ## Running Tests
 

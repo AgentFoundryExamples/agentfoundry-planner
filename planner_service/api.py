@@ -18,14 +18,16 @@
 # ============================================================
 """FastAPI application for the planner service."""
 
+import os
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 from uuid import uuid4
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, Header, HTTPException, Request
 from fastapi.responses import JSONResponse
 
 from planner_service import __version__
+from planner_service.context_driver import get_context_driver
 from planner_service.logging import configure_logging, get_logger
 from planner_service.models import (
     ErrorDetail,
@@ -33,6 +35,8 @@ from planner_service.models import (
     HealthResponse,
     PlanRequest,
     PlanResponse,
+    ProjectContext,
+    RepositoryPointer,
 )
 
 
@@ -120,3 +124,57 @@ async def create_plan(request: PlanRequest) -> PlanResponse:
         status="pending",
         steps=None,
     )
+
+
+# Stub authorization token for debug endpoint
+DEBUG_AUTH_TOKEN = os.environ.get("DEBUG_AUTH_TOKEN", "debug-token-stub")
+
+
+def _verify_debug_auth(authorization: str | None) -> None:
+    """Verify authorization for debug endpoints.
+
+    Args:
+        authorization: The Authorization header value.
+
+    Raises:
+        HTTPException: If authorization is missing or invalid.
+    """
+    if not authorization:
+        raise HTTPException(status_code=401, detail="Authorization header required")
+
+    # Expected format: "Bearer <token>"
+    parts = authorization.split(" ", 1)
+    if len(parts) != 2 or parts[0].lower() != "bearer":
+        raise HTTPException(status_code=401, detail="Invalid authorization format")
+
+    if parts[1] != DEBUG_AUTH_TOKEN:
+        raise HTTPException(status_code=403, detail="Invalid token")
+
+
+@app.post("/v1/debug/context", response_model=ProjectContext, tags=["debug"])
+async def debug_context(
+    repository: RepositoryPointer,
+    authorization: str | None = Header(None),
+) -> ProjectContext:
+    """Debug endpoint to fetch repository context.
+
+    This endpoint uses the configured context driver to return
+    ProjectContext for a given repository. Protected by auth stub.
+
+    Args:
+        repository: The repository to fetch context for.
+        authorization: Bearer token for authentication.
+
+    Returns:
+        ProjectContext for the specified repository.
+    """
+    _verify_debug_auth(authorization)
+
+    logger = get_logger(__name__)
+    logger.debug(
+        "debug_context_request",
+        repository=f"{repository.owner}/{repository.repo}",
+    )
+
+    driver = get_context_driver()
+    return driver.fetch_context(repository)
