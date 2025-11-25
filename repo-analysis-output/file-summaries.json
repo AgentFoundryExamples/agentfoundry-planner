@@ -32,8 +32,8 @@
       "role": "api",
       "role_justification": "filename contains 'api'",
       "metrics": {
-        "size_bytes": 13669,
-        "loc": 325,
+        "size_bytes": 13950,
+        "loc": 331,
         "todo_count": 0,
         "declaration_count": 8
       },
@@ -318,7 +318,7 @@
       "role": "test",
       "role_justification": "filename starts with 'test_'",
       "metrics": {
-        "size_bytes": 7652,
+        "size_bytes": 7633,
         "loc": 159,
         "todo_count": 0,
         "declaration_count": 7
@@ -395,10 +395,10 @@
       "role": "test",
       "role_justification": "filename starts with 'test_'",
       "metrics": {
-        "size_bytes": 22421,
-        "loc": 472,
+        "size_bytes": 24214,
+        "loc": 508,
         "todo_count": 0,
-        "declaration_count": 11
+        "declaration_count": 12
       },
       "structure": {
         "declarations": [
@@ -412,7 +412,8 @@
           "class TestPlanEndpointValidation",
           "class TestHealthEndpoints",
           "class TestAuthContextModel",
-          "class TestGetCurrentUserDependency"
+          "class TestGetCurrentUserDependency",
+          "class TestPlanValidationLogging"
         ]
       },
       "dependencies": {

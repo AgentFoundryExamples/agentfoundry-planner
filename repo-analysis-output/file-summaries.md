@@ -18,8 +18,8 @@ Total files: 14
 **Language:** Python  
 **Role:** api  
 **Role Justification:** filename contains 'api'  
-**Size:** 13.35 KB  
-**LOC:** 325  
+**Size:** 13.62 KB  
+**LOC:** 331  
 **TODOs/FIXMEs:** 0  
 **Declarations:** 8  
 **Top-level declarations:**
@@ -153,7 +153,7 @@ Total files: 14
 **Language:** Python  
 **Role:** test  
 **Role Justification:** filename starts with 'test_'  
-**Size:** 7.47 KB  
+**Size:** 7.45 KB  
 **LOC:** 159  
 **TODOs/FIXMEs:** 0  
 **Declarations:** 7  
@@ -191,10 +191,10 @@ Total files: 14
 **Language:** Python  
 **Role:** test  
 **Role Justification:** filename starts with 'test_'  
-**Size:** 21.90 KB  
-**LOC:** 472  
+**Size:** 23.65 KB  
+**LOC:** 508  
 **TODOs/FIXMEs:** 0  
-**Declarations:** 11  
+**Declarations:** 12  
 **Top-level declarations:**
   - function client
   - function _make_user_input
@@ -206,7 +206,7 @@ Total files: 14
   - class TestPlanEndpointValidation
   - class TestHealthEndpoints
   - class TestAuthContextModel
-  - ... and 1 more
+  - ... and 2 more
 **External Dependencies:**
   - **Stdlib:** `unittest.mock.patch`, `uuid.UUID`
   - **Third-party:** `fastapi.testclient.TestClient`, `pytest`
