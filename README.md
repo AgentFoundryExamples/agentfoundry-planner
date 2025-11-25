@@ -17,7 +17,7 @@ FastAPI planner service for Agent Foundry. This service provides a planning API 
 ```
 planner-service/
 ├── planner_service/
-│   ├── __init__.py         # Package initialization
+│   ├── __init__.py         # Package initialization and version
 │   ├── api.py              # FastAPI application and endpoints
 │   ├── auth.py             # Authentication context and dependency
 │   ├── context_driver.py   # Context driver abstraction and factory
@@ -31,7 +31,10 @@ planner-service/
 │   ├── test_context_driver.py  # Context driver tests
 │   ├── test_plan_endpoint.py   # Plan endpoint tests
 │   └── test_prompt_engine.py   # Prompt engine tests
+├── docs/
+│   └── versioning.md       # Version metadata and release notes
 ├── Dockerfile              # Cloud Run deployment
+├── Makefile                # Developer targets (install, lint, test, run)
 ├── pyproject.toml          # Project metadata and dependencies
 └── README.md
 ```
@@ -42,8 +45,38 @@ planner-service/
 
 - Python 3.11+
 - pip
+- make (optional, for developer targets)
 
-### Install Dependencies
+### Using Makefile (Recommended)
+
+The Makefile provides convenient targets for common development tasks using a virtual environment:
+
+```bash
+# Show available targets
+make help
+
+# Install package dependencies (creates .venv)
+make install
+
+# Install with dev dependencies (for testing/linting)
+make install-dev
+
+# Run linting (requires ruff)
+make lint
+
+# Run tests
+make test
+
+# Start development server with auto-reload
+make run
+
+# Clean build artifacts and virtualenv
+make clean
+```
+
+Note: The Makefile creates a `.venv` directory for the virtual environment. If the virtualenv already exists, install commands will use it without recreating.
+
+### Manual Installation
 
 ```bash
 # Install package with dependencies
@@ -55,7 +88,14 @@ pip install -e ".[dev]"
 
 ## Running the Server
 
-### Local Development
+### Using Makefile
+
+```bash
+# Start development server with auto-reload (uses .venv)
+make run
+```
+
+### Local Development (Manual)
 
 ```bash
 # Run with uvicorn (development mode with auto-reload)
@@ -73,6 +113,15 @@ docker build -t planner-service .
 
 # Run the container
 docker run -p 8080:8080 planner-service
+
+# Run with custom environment variables
+docker run -p 8080:8080 \
+  -e LOG_LEVEL=DEBUG \
+  -e DEBUG_AUTH_TOKEN=my-secret-token \
+  planner-service
+
+# Run with port mapping to different host port
+docker run -p 3000:8080 planner-service
 ```
 
 ## Environment Variables
@@ -511,6 +560,15 @@ Request completed (JSON format):
 
 ## Running Tests
 
+### Using Makefile
+
+```bash
+# Run all tests with verbose output
+make test
+```
+
+### Manual
+
 ```bash
 # Run all tests
 pytest
@@ -524,6 +582,10 @@ pytest tests/test_app.py
 # Run specific test class
 pytest tests/test_app.py::TestHealthEndpoint
 ```
+
+## Version Information
+
+The package version is `0.1.0`, defined in `planner_service/__init__.py`. For detailed version metadata, release process, and changelog, see [docs/versioning.md](docs/versioning.md).
 
 ## Error Handling
 
