@@ -32,7 +32,7 @@
       "role": "api",
       "role_justification": "filename contains 'api'",
       "metrics": {
-        "size_bytes": 12532,
+        "size_bytes": 12602,
         "loc": 297,
         "todo_count": 0,
         "declaration_count": 8
@@ -112,8 +112,8 @@
       "role": "implementation",
       "role_justification": "general implementation file (default classification)",
       "metrics": {
-        "size_bytes": 4961,
-        "loc": 97,
+        "size_bytes": 5161,
+        "loc": 100,
         "todo_count": 0,
         "declaration_count": 3
       },
@@ -181,13 +181,15 @@
       "role": "model",
       "role_justification": "model/schema name 'models'",
       "metrics": {
-        "size_bytes": 4324,
-        "loc": 81,
+        "size_bytes": 8194,
+        "loc": 166,
         "todo_count": 0,
-        "declaration_count": 10
+        "declaration_count": 12
       },
       "structure": {
         "declarations": [
+          "function _validate_non_empty_string",
+          "function _validate_non_empty_strings",
           "class RepositoryPointer",
           "class UserInput",
           "class ProjectContext",
@@ -210,7 +212,11 @@
           ],
           "third-party": [
             "pydantic.BaseModel",
-            "pydantic.Field"
+            "pydantic.ConfigDict",
+            "pydantic.Field",
+            "pydantic.StrictStr",
+            "pydantic.ValidationInfo",
+            "pydantic.field_validator"
           ]
         }
       }
@@ -222,8 +228,8 @@
       "role": "implementation",
       "role_justification": "general implementation file (default classification)",
       "metrics": {
-        "size_bytes": 4807,
-        "loc": 87,
+        "size_bytes": 5101,
+        "loc": 90,
         "todo_count": 0,
         "declaration_count": 3
       },
@@ -240,8 +246,7 @@
         "external": {
           "stdlib": [
             "typing.Protocol",
-            "typing.runtime_checkable",
-            "uuid.uuid4"
+            "typing.runtime_checkable"
           ],
           "third-party": [
             "af_prompt_core.PromptEngineBackend"
@@ -279,14 +284,15 @@
       "role": "test",
       "role_justification": "filename starts with 'test_'",
       "metrics": {
-        "size_bytes": 7169,
-        "loc": 154,
+        "size_bytes": 7652,
+        "loc": 159,
         "todo_count": 0,
-        "declaration_count": 6
+        "declaration_count": 7
       },
       "structure": {
         "declarations": [
           "function client",
+          "function _make_user_input",
           "class TestHealthEndpoint",
           "class TestPlanEndpoint",
           "class TestModels",
@@ -316,7 +322,7 @@
       "role": "test",
       "role_justification": "filename starts with 'test_'",
       "metrics": {
-        "size_bytes": 10863,
+        "size_bytes": 10469,
         "loc": 196,
         "todo_count": 0,
         "declaration_count": 5
@@ -354,14 +360,15 @@
       "role": "test",
       "role_justification": "filename starts with 'test_'",
       "metrics": {
-        "size_bytes": 13591,
-        "loc": 270,
+        "size_bytes": 20172,
+        "loc": 422,
         "todo_count": 0,
-        "declaration_count": 9
+        "declaration_count": 10
       },
       "structure": {
         "declarations": [
           "function client",
+          "function _make_user_input",
           "class TestPlanEndpointAuth",
           "class TestPlanEndpointHappyPath",
           "class TestPlanEndpointContextDriverFailure",
@@ -377,7 +384,6 @@
         "exports": [],
         "external": {
           "stdlib": [
-            "unittest.mock.MagicMock",
             "unittest.mock.patch",
             "uuid.UUID"
           ],
@@ -395,8 +401,8 @@
       "role": "test",
       "role_justification": "filename starts with 'test_'",
       "metrics": {
-        "size_bytes": 10430,
-        "loc": 211,
+        "size_bytes": 10547,
+        "loc": 217,
         "todo_count": 0,
         "declaration_count": 5
       },
@@ -416,7 +422,8 @@
           "stdlib": [
             "builtins",
             "unittest.mock.MagicMock",
-            "unittest.mock.patch"
+            "unittest.mock.patch",
+            "uuid.uuid4"
           ],
           "third-party": [
             "pytest"

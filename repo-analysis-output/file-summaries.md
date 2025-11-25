@@ -18,7 +18,7 @@ Total files: 12
 **Language:** Python  
 **Role:** api  
 **Role Justification:** filename contains 'api'  
-**Size:** 12.24 KB  
+**Size:** 12.31 KB  
 **LOC:** 297  
 **TODOs/FIXMEs:** 0  
 **Declarations:** 8  
@@ -55,8 +55,8 @@ Total files: 12
 **Language:** Python  
 **Role:** implementation  
 **Role Justification:** general implementation file (default classification)  
-**Size:** 4.84 KB  
-**LOC:** 97  
+**Size:** 5.04 KB  
+**LOC:** 100  
 **TODOs/FIXMEs:** 0  
 **Declarations:** 3  
 **Top-level declarations:**
@@ -87,11 +87,13 @@ Total files: 12
 **Language:** Python  
 **Role:** model  
 **Role Justification:** model/schema name 'models'  
-**Size:** 4.22 KB  
-**LOC:** 81  
+**Size:** 8.00 KB  
+**LOC:** 166  
 **TODOs/FIXMEs:** 0  
-**Declarations:** 10  
+**Declarations:** 12  
 **Top-level declarations:**
+  - function _validate_non_empty_string
+  - function _validate_non_empty_strings
   - class RepositoryPointer
   - class UserInput
   - class ProjectContext
@@ -100,18 +102,18 @@ Total files: 12
   - class PlanStep
   - class PlanResponse
   - class ErrorDetail
-  - class ErrorResponse
-  - class HealthResponse
+  - ... and 2 more
 **External Dependencies:**
   - **Stdlib:** `typing.Optional`, `uuid.UUID`
-  - **Third-party:** `pydantic.BaseModel`, `pydantic.Field`
+  - **Third-party:** `pydantic.BaseModel`, `pydantic.ConfigDict`, `pydantic.Field`, `pydantic.StrictStr`, `pydantic.ValidationInfo`
+    _(and 1 more)_
 
 ## planner_service/prompt_engine.py
 **Language:** Python  
 **Role:** implementation  
 **Role Justification:** general implementation file (default classification)  
-**Size:** 4.69 KB  
-**LOC:** 87  
+**Size:** 4.98 KB  
+**LOC:** 90  
 **TODOs/FIXMEs:** 0  
 **Declarations:** 3  
 **Top-level declarations:**
@@ -119,7 +121,7 @@ Total files: 12
   - class StubPromptEngine
   - function get_prompt_engine
 **External Dependencies:**
-  - **Stdlib:** `typing.Protocol`, `typing.runtime_checkable`, `uuid.uuid4`
+  - **Stdlib:** `typing.Protocol`, `typing.runtime_checkable`
   - **Third-party:** `af_prompt_core.PromptEngineBackend`
 
 ## tests/__init__.py
@@ -134,12 +136,13 @@ Total files: 12
 **Language:** Python  
 **Role:** test  
 **Role Justification:** filename starts with 'test_'  
-**Size:** 7.00 KB  
-**LOC:** 154  
+**Size:** 7.47 KB  
+**LOC:** 159  
 **TODOs/FIXMEs:** 0  
-**Declarations:** 6  
+**Declarations:** 7  
 **Top-level declarations:**
   - function client
+  - function _make_user_input
   - class TestHealthEndpoint
   - class TestPlanEndpoint
   - class TestModels
@@ -153,7 +156,7 @@ Total files: 12
 **Language:** Python  
 **Role:** test  
 **Role Justification:** filename starts with 'test_'  
-**Size:** 10.61 KB  
+**Size:** 10.22 KB  
 **LOC:** 196  
 **TODOs/FIXMEs:** 0  
 **Declarations:** 5  
@@ -171,12 +174,13 @@ Total files: 12
 **Language:** Python  
 **Role:** test  
 **Role Justification:** filename starts with 'test_'  
-**Size:** 13.27 KB  
-**LOC:** 270  
+**Size:** 19.70 KB  
+**LOC:** 422  
 **TODOs/FIXMEs:** 0  
-**Declarations:** 9  
+**Declarations:** 10  
 **Top-level declarations:**
   - function client
+  - function _make_user_input
   - class TestPlanEndpointAuth
   - class TestPlanEndpointHappyPath
   - class TestPlanEndpointContextDriverFailure
@@ -186,15 +190,15 @@ Total files: 12
   - class TestAuthContextModel
   - class TestGetCurrentUserDependency
 **External Dependencies:**
-  - **Stdlib:** `unittest.mock.MagicMock`, `unittest.mock.patch`, `uuid.UUID`
+  - **Stdlib:** `unittest.mock.patch`, `uuid.UUID`
   - **Third-party:** `fastapi.testclient.TestClient`, `pytest`
 
 ## tests/test_prompt_engine.py
 **Language:** Python  
 **Role:** test  
 **Role Justification:** filename starts with 'test_'  
-**Size:** 10.19 KB  
-**LOC:** 211  
+**Size:** 10.30 KB  
+**LOC:** 217  
 **TODOs/FIXMEs:** 0  
 **Declarations:** 5  
 **Top-level declarations:**
@@ -204,5 +208,5 @@ Total files: 12
   - class TestGetPromptEngineFactory
   - class TestMultipleProjectContextHandling
 **External Dependencies:**
-  - **Stdlib:** `builtins`, `unittest.mock.MagicMock`, `unittest.mock.patch`
+  - **Stdlib:** `builtins`, `unittest.mock.MagicMock`, `unittest.mock.patch`, `uuid.uuid4`
   - **Third-party:** `pytest`

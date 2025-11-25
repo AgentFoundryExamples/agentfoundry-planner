@@ -89,7 +89,11 @@
         ],
         "third-party": [
           "pydantic.BaseModel",
-          "pydantic.Field"
+          "pydantic.ConfigDict",
+          "pydantic.Field",
+          "pydantic.StrictStr",
+          "pydantic.ValidationInfo",
+          "pydantic.field_validator"
         ]
       }
     },
@@ -100,8 +104,7 @@
       "external_dependencies": {
         "stdlib": [
           "typing.Protocol",
-          "typing.runtime_checkable",
-          "uuid.uuid4"
+          "typing.runtime_checkable"
         ],
         "third-party": [
           "af_prompt_core.PromptEngineBackend"
@@ -155,7 +158,6 @@
       "type": "file",
       "external_dependencies": {
         "stdlib": [
-          "unittest.mock.MagicMock",
           "unittest.mock.patch",
           "uuid.UUID"
         ],
@@ -173,7 +175,8 @@
         "stdlib": [
           "builtins",
           "unittest.mock.MagicMock",
-          "unittest.mock.patch"
+          "unittest.mock.patch",
+          "uuid.uuid4"
         ],
         "third-party": [
           "pytest"
@@ -305,11 +308,15 @@
       "fastapi.responses.JSONResponse",
       "fastapi.testclient.TestClient",
       "pydantic.BaseModel",
+      "pydantic.ConfigDict",
       "pydantic.Field",
+      "pydantic.StrictStr",
+      "pydantic.ValidationInfo",
+      "pydantic.field_validator",
       "pytest",
       "structlog"
     ],
     "stdlib_count": 15,
-    "third-party_count": 14
+    "third-party_count": 18
   }
 }

@@ -9,7 +9,7 @@ Includes classification of external dependencies as stdlib vs third-party.
 - **Total files**: 12
 - **Intra-repo dependencies**: 23
 - **External stdlib dependencies**: 15
-- **External third-party dependencies**: 14
+- **External third-party dependencies**: 18
 
 ## External Dependencies
 
@@ -35,7 +35,7 @@ Total: 15 unique modules
 
 ### Third-Party Packages
 
-Total: 14 unique packages
+Total: 18 unique packages
 
 - `af_github_core.GitHubContextDriver`
 - `af_prompt_core.PromptEngineBackend`
@@ -48,7 +48,11 @@ Total: 14 unique packages
 - `fastapi.responses.JSONResponse`
 - `fastapi.testclient.TestClient`
 - `pydantic.BaseModel`
+- `pydantic.ConfigDict`
 - `pydantic.Field`
+- `pydantic.StrictStr`
+- `pydantic.ValidationInfo`
+- `pydantic.field_validator`
 - `pytest`
 - `structlog`
 
