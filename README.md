@@ -403,16 +403,16 @@ The stub engine returns a deterministic payload with the following structure:
   "request_id": "uuid-string",
   "repository": {
     "owner": "string",
-    "repo": "string",
-    "ref": "string|null"
+    "name": "string",
+    "ref": "refs/heads/main"
   },
   "status": "success",
   "prompt_preview": "[STUB] Planning request for owner/repo: query..."
 }
 ```
 
-- `request_id`: Unique identifier generated for each request
-- `repository`: Repository metadata from the planning context
+- `request_id`: The request ID from PlanningContext (matches top-level response ID)
+- `repository`: Repository metadata from the planning context (uses AF v1.1 field names)
 - `status`: Always "success" for stub (real engines may return "failure")
 - `prompt_preview`: Stub preview that does not expose real prompts (useful for wiring tests)
 
@@ -625,17 +625,15 @@ The package version is `0.1.0`, defined in `planner_service/__init__.py`. For de
 
 ## Error Handling
 
-Request payload missing required fields returns a validation error (HTTP 422) with clear error JSON that omits `run_id`:
+Request payload missing required fields returns a validation error (HTTP 422) with a structured `ErrorResponse` that includes `request_id` for tracking but omits `run_id`:
 
 ```json
 {
-  "detail": [
-    {
-      "type": "missing",
-      "loc": ["body", "repository"],
-      "msg": "Field required"
-    }
-  ]
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "repository: Field required"
+  },
+  "request_id": "uuid"
 }
 ```
 
