@@ -7,6 +7,8 @@
     └── repo-analyzer.config.json
   └── workflows
     └── af_maintenance.yml
+├── docs
+  └── versioning.md
 ├── planner_service
   ├── resources
     └── mock_context.json
@@ -34,5 +36,6 @@
 ├── .gitignore
 ├── Dockerfile
 ├── LICENSE
+├── Makefile
 ├── pyproject.toml
 └── README.md

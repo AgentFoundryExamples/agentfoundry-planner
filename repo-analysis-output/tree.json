@@ -38,6 +38,16 @@
     },
     {
       "type": "directory",
+      "name": "docs",
+      "children": [
+        {
+          "type": "file",
+          "name": "versioning.md"
+        }
+      ]
+    },
+    {
+      "type": "directory",
       "name": "planner_service",
       "children": [
         {
@@ -151,6 +161,10 @@
     {
       "type": "file",
       "name": "LICENSE"
+    },
+    {
+      "type": "file",
+      "name": "Makefile"
     },
     {
       "type": "file",
