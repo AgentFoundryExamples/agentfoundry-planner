@@ -21,14 +21,15 @@
 from typing import Optional
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, ValidationInfo, field_validator
 
 
-def _validate_non_empty_strings(value: list[str]) -> list[str]:
+def _validate_non_empty_strings(value: list[str], field_name: str = "list") -> list[str]:
     """Validate that a list contains only non-empty, non-whitespace strings.
 
     Args:
         value: List of strings to validate.
+        field_name: Name of the field being validated for error messages.
 
     Returns:
         The validated list.
@@ -38,7 +39,9 @@ def _validate_non_empty_strings(value: list[str]) -> list[str]:
     """
     for i, item in enumerate(value):
         if not item or not item.strip():
-            raise ValueError(f"Item at index {i} must be a non-empty string")
+            raise ValueError(
+                f"'{field_name}' item at index {i} must be a non-empty string"
+            )
     return value
 
 
@@ -84,9 +87,9 @@ class UserInput(BaseModel):
 
     @field_validator("must", "dont", "nice")
     @classmethod
-    def validate_string_lists(cls, v: list[str]) -> list[str]:
+    def validate_string_lists(cls, v: list[str], info: ValidationInfo) -> list[str]:
         """Validate that list entries are non-empty strings."""
-        return _validate_non_empty_strings(v)
+        return _validate_non_empty_strings(v, info.field_name)
 
 
 class ProjectContext(BaseModel):
