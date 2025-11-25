@@ -1,0 +1,16 @@
+{
+  "default": {
+    "default_branch": "main",
+    "languages": ["python"]
+  },
+  "repositories": {
+    "example-org/example-repo": {
+      "default_branch": "main",
+      "languages": ["python", "javascript"]
+    },
+    "test-owner/test-repo": {
+      "default_branch": "develop",
+      "languages": ["typescript", "rust"]
+    }
+  }
+}
