@@ -224,17 +224,46 @@ class TestPlanEndpointPromptEngineFailure:
 class TestPlanEndpointValidation:
     """Tests for request validation in /v1/plan endpoint."""
 
-    def test_plan_missing_repository_returns_422(self, client: TestClient) -> None:
-        """Plan endpoint returns 422 for missing repository."""
+    def test_plan_missing_repository_returns_422_with_request_id(
+        self, client: TestClient
+    ) -> None:
+        """Plan endpoint returns 422 with request_id for missing repository."""
         payload = {"user_input": {"query": "Test query"}}
         response = client.post("/v1/plan", json=payload)
         assert response.status_code == 422
+        data = response.json()
+        assert "error" in data
+        assert data["error"]["code"] == "VALIDATION_ERROR"
+        assert "request_id" in data
+        assert "run_id" not in data  # No run_id on error
 
-    def test_plan_missing_user_input_returns_422(self, client: TestClient) -> None:
-        """Plan endpoint returns 422 for missing user_input."""
+    def test_plan_missing_user_input_returns_422_with_request_id(
+        self, client: TestClient
+    ) -> None:
+        """Plan endpoint returns 422 with request_id for missing user_input."""
         payload = {"repository": {"owner": "test-owner", "repo": "test-repo"}}
         response = client.post("/v1/plan", json=payload)
         assert response.status_code == 422
+        data = response.json()
+        assert "error" in data
+        assert data["error"]["code"] == "VALIDATION_ERROR"
+        assert "request_id" in data
+        assert "run_id" not in data  # No run_id on error
+
+    def test_plan_validation_error_echoes_client_request_id(
+        self, client: TestClient
+    ) -> None:
+        """Plan endpoint echoes client-provided request_id on validation errors."""
+        client_request_id = "550e8400-e29b-41d4-a716-446655440000"
+        payload = {
+            "user_input": {"query": "Test query"},
+            "request_id": client_request_id,
+        }
+        response = client.post("/v1/plan", json=payload)
+        assert response.status_code == 422
+        data = response.json()
+        assert data["request_id"] == client_request_id
+        assert "run_id" not in data
 
     def test_plan_accepts_large_must_arrays(self, client: TestClient) -> None:
         """Plan endpoint validates large payloads without performance issues."""

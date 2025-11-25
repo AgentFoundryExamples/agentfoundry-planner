@@ -21,9 +21,10 @@
 import os
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 from planner_service import __version__
@@ -77,6 +78,44 @@ async def http_exception_handler(
     )
     return JSONResponse(
         status_code=exc.status_code,
+        content=error_response.model_dump(mode="json", exclude_none=True),
+    )
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(
+    request: Request, exc: RequestValidationError
+) -> JSONResponse:
+    """Handle validation errors with structured error response including request_id.
+
+    This ensures that validation failures (422 errors) include a request_id
+    per the acceptance criteria that all error responses include request_id.
+    """
+    # Try to extract client-provided request_id from the request body
+    error_request_id = uuid4()
+    try:
+        body = await request.json()
+        if isinstance(body, dict) and "request_id" in body:
+            error_request_id = UUID(body["request_id"])
+    except Exception:
+        # If we can't parse the body or request_id, use generated one
+        pass
+
+    # Build a summary message from validation errors
+    error_messages = []
+    for error in exc.errors():
+        loc = ".".join(str(l) for l in error["loc"])
+        error_messages.append(f"{loc}: {error['msg']}")
+
+    error_response = ErrorResponse(
+        error=ErrorDetail(
+            code="VALIDATION_ERROR",
+            message="; ".join(error_messages) if error_messages else "Validation failed",
+        ),
+        request_id=error_request_id,
+    )
+    return JSONResponse(
+        status_code=422,
         content=error_response.model_dump(mode="json", exclude_none=True),
     )
 
