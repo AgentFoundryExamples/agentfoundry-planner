@@ -23,6 +23,7 @@ planner-service/
 │   ├── context_driver.py   # Context driver abstraction and factory
 │   ├── logging.py          # Structlog configuration
 │   ├── models.py           # Pydantic data models
+│   ├── plan_validator.py   # Plan validator abstraction for validating prompt engine output
 │   ├── prompt_engine.py    # Prompt engine abstraction and factory
 │   └── resources/
 │       └── mock_context.json  # Mock context fixtures
@@ -30,6 +31,7 @@ planner-service/
 │   ├── test_app.py         # Unit and integration tests
 │   ├── test_context_driver.py  # Context driver tests
 │   ├── test_plan_endpoint.py   # Plan endpoint tests
+│   ├── test_plan_validator.py  # Plan validator tests
 │   └── test_prompt_engine.py   # Prompt engine tests
 ├── docs/
 │   └── versioning.md       # Version metadata and release notes
@@ -455,6 +457,74 @@ When `PromptEngine.run()` raises an exception:
 - Errors propagate to the API response with status "failure"
 - The response omits `run_id` to indicate no run was created
 - Factory import failures are logged but the service continues running with the stub
+
+## Plan Validator Architecture
+
+The planner service treats PromptEngine output as an untrusted candidate that requires validation before sending to clients. The plan validator abstraction sits between the PromptEngine and response serialization.
+
+### PlanValidator Protocol
+
+The `PlanValidator` protocol defines the interface for plan validators:
+
+```python
+class PlanValidator(Protocol):
+    def validate(self, ctx: PlanningContext, candidate_payload: object) -> dict:
+        """Validate the candidate payload from the prompt engine."""
+        ...
+```
+
+### Available Validators
+
+| Validator | Description |
+|-----------|-------------|
+| `StubPlanValidator` | Enforces basic structure (dict with `request_id` and `plan_version`) |
+
+### PlanValidationFailure Exception
+
+When validation fails, validators raise `PlanValidationFailure` with:
+- `code`: Machine-readable error code for programmatic handling
+- `message`: Human-readable error message for debugging
+
+```python
+from planner_service.plan_validator import PlanValidationFailure
+
+try:
+    validated = validator.validate(ctx, candidate_payload)
+except PlanValidationFailure as exc:
+    error_response = {"code": exc.code, "message": exc.message}
+```
+
+### StubPlanValidator Checks
+
+The stub validator enforces:
+1. Payload must be a `dict` (raises `INVALID_PAYLOAD_TYPE`)
+2. Payload must contain `request_id` key (raises `MISSING_REQUEST_ID`)
+3. Payload must contain `plan_version` key (raises `MISSING_PLAN_VERSION`)
+4. `request_id` must be a string (raises `INVALID_REQUEST_ID_TYPE`)
+5. `plan_version` must be a string (raises `INVALID_PLAN_VERSION_TYPE`)
+
+### Custom Validator Implementation
+
+To implement a custom plan validator:
+
+```python
+from planner_service.plan_validator import PlanValidator, PlanValidationFailure
+from planner_service.models import PlanningContext
+
+class MyCustomValidator:
+    def validate(self, ctx: PlanningContext, candidate_payload: object) -> dict:
+        if not isinstance(candidate_payload, dict):
+            raise PlanValidationFailure(
+                code="INVALID_PAYLOAD_TYPE",
+                message=f"Expected dict, got {type(candidate_payload).__name__}",
+            )
+        # Additional validation logic...
+        return candidate_payload
+```
+
+### Integration with PlanningContext
+
+The validator receives the full `PlanningContext` to enable cross-referencing validation (e.g., verifying the payload's `request_id` matches the context). Future validators may use context fields for richer checks.
 
 ## Model Contracts (AF v1.1)
 
