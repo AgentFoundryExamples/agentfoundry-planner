@@ -94,13 +94,12 @@ class StubPromptEngine:
         )
 
         # Build deterministic prompt preview (does not expose real prompts)
-        prompt_preview = (
-            f"[STUB] Planning request for {repo.owner}/{repo.repo}: "
-            f"{ctx.user_input.query[:50]}..."
-            if len(ctx.user_input.query) > 50
-            else f"[STUB] Planning request for {repo.owner}/{repo.repo}: "
-            f"{ctx.user_input.query}"
-        )
+        base_preview = f"[STUB] Planning request for {repo.owner}/{repo.repo}: "
+        query = ctx.user_input.query
+        if len(query) > 50:
+            prompt_preview = f"{base_preview}{query[:50]}..."
+        else:
+            prompt_preview = f"{base_preview}{query}"
 
         return {
             "request_id": request_id,

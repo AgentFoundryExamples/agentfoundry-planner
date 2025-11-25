@@ -133,7 +133,7 @@ class TestStubPromptEngine:
         long_query = "A" * 100
         ctx = PlanningContext(
             project=ProjectContext(
-                repository=RepositoryPointer(owner="owner", repo="repo"),
+                repository=RepositoryPointer(owner="owner", repo="repo", ref=None),
             ),
             user_input=UserInput(query=long_query),
         )
@@ -148,7 +148,7 @@ class TestStubPromptEngine:
         """run handles repository without ref."""
         ctx = PlanningContext(
             project=ProjectContext(
-                repository=RepositoryPointer(owner="owner", repo="repo"),
+                repository=RepositoryPointer(owner="owner", repo="repo", ref=None),
             ),
             user_input=UserInput(query="Test query"),
         )
