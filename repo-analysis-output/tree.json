@@ -38,6 +38,28 @@
     },
     {
       "type": "directory",
+      "name": "planner_service",
+      "children": [
+        {
+          "type": "file",
+          "name": "__init__.py"
+        },
+        {
+          "type": "file",
+          "name": "api.py"
+        },
+        {
+          "type": "file",
+          "name": "logging.py"
+        },
+        {
+          "type": "file",
+          "name": "models.py"
+        }
+      ]
+    },
+    {
+      "type": "directory",
       "name": "repo-analysis-output",
       "children": [
         {
@@ -63,8 +85,34 @@
       ]
     },
     {
+      "type": "directory",
+      "name": "tests",
+      "children": [
+        {
+          "type": "file",
+          "name": "__init__.py"
+        },
+        {
+          "type": "file",
+          "name": "test_app.py"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": ".gitignore"
+    },
+    {
+      "type": "file",
+      "name": "Dockerfile"
+    },
+    {
       "type": "file",
       "name": "LICENSE"
+    },
+    {
+      "type": "file",
+      "name": "pyproject.toml"
     },
     {
       "type": "file",

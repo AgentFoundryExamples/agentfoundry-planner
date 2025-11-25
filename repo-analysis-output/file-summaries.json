@@ -1,0 +1,202 @@
+{
+  "schema_version": "2.0",
+  "total_files": 6,
+  "files": [
+    {
+      "schema_version": "2.0",
+      "path": "planner_service/__init__.py",
+      "language": "Python",
+      "role": "module-init",
+      "role_justification": "module initialization file '__init__'",
+      "metrics": {
+        "size_bytes": 1000,
+        "loc": 2,
+        "todo_count": 0
+      },
+      "structure": {
+        "declarations": []
+      },
+      "dependencies": {
+        "imports": [],
+        "exports": [],
+        "external": {
+          "stdlib": [],
+          "third-party": []
+        }
+      }
+    },
+    {
+      "schema_version": "2.0",
+      "path": "planner_service/api.py",
+      "language": "Python",
+      "role": "api",
+      "role_justification": "filename contains 'api'",
+      "metrics": {
+        "size_bytes": 3891,
+        "loc": 82,
+        "todo_count": 0,
+        "declaration_count": 4
+      },
+      "structure": {
+        "declarations": [
+          "async function lifespan",
+          "async function http_exception_handler",
+          "async function health_check",
+          "async function create_plan"
+        ]
+      },
+      "dependencies": {
+        "imports": [],
+        "exports": [],
+        "external": {
+          "stdlib": [
+            "contextlib.asynccontextmanager",
+            "typing.AsyncGenerator",
+            "uuid.uuid4"
+          ],
+          "third-party": [
+            "fastapi.FastAPI",
+            "fastapi.HTTPException",
+            "fastapi.Request",
+            "fastapi.responses.JSONResponse"
+          ]
+        }
+      }
+    },
+    {
+      "schema_version": "2.0",
+      "path": "planner_service/logging.py",
+      "language": "Python",
+      "role": "implementation",
+      "role_justification": "general implementation file (default classification)",
+      "metrics": {
+        "size_bytes": 3190,
+        "loc": 57,
+        "todo_count": 0,
+        "declaration_count": 3
+      },
+      "structure": {
+        "declarations": [
+          "function get_log_level",
+          "function configure_logging",
+          "function get_logger"
+        ]
+      },
+      "dependencies": {
+        "imports": [],
+        "exports": [],
+        "external": {
+          "stdlib": [
+            "logging",
+            "os",
+            "sys"
+          ],
+          "third-party": [
+            "structlog"
+          ]
+        }
+      }
+    },
+    {
+      "schema_version": "2.0",
+      "path": "planner_service/models.py",
+      "language": "Python",
+      "role": "model",
+      "role_justification": "model/schema name 'models'",
+      "metrics": {
+        "size_bytes": 4324,
+        "loc": 81,
+        "todo_count": 0,
+        "declaration_count": 10
+      },
+      "structure": {
+        "declarations": [
+          "class RepositoryPointer",
+          "class UserInput",
+          "class ProjectContext",
+          "class PlanningContext",
+          "class PlanRequest",
+          "class PlanStep",
+          "class PlanResponse",
+          "class ErrorDetail",
+          "class ErrorResponse",
+          "class HealthResponse"
+        ]
+      },
+      "dependencies": {
+        "imports": [],
+        "exports": [],
+        "external": {
+          "stdlib": [
+            "typing.Optional",
+            "uuid.UUID"
+          ],
+          "third-party": [
+            "pydantic.BaseModel",
+            "pydantic.Field"
+          ]
+        }
+      }
+    },
+    {
+      "schema_version": "2.0",
+      "path": "tests/__init__.py",
+      "language": "Python",
+      "role": "test",
+      "role_justification": "located in 'tests' directory",
+      "metrics": {
+        "size_bytes": 947,
+        "loc": 1,
+        "todo_count": 0
+      },
+      "structure": {
+        "declarations": []
+      },
+      "dependencies": {
+        "imports": [],
+        "exports": [],
+        "external": {
+          "stdlib": [],
+          "third-party": []
+        }
+      }
+    },
+    {
+      "schema_version": "2.0",
+      "path": "tests/test_app.py",
+      "language": "Python",
+      "role": "test",
+      "role_justification": "filename starts with 'test_'",
+      "metrics": {
+        "size_bytes": 7138,
+        "loc": 154,
+        "todo_count": 0,
+        "declaration_count": 6
+      },
+      "structure": {
+        "declarations": [
+          "function client",
+          "class TestHealthEndpoint",
+          "class TestPlanEndpoint",
+          "class TestModels",
+          "class TestAppInitialization",
+          "class TestLogging"
+        ]
+      },
+      "dependencies": {
+        "imports": [],
+        "exports": [],
+        "external": {
+          "stdlib": [
+            "uuid.UUID",
+            "uuid.uuid4"
+          ],
+          "third-party": [
+            "fastapi.testclient.TestClient",
+            "pytest"
+          ]
+        }
+      }
+    }
+  ]
+}

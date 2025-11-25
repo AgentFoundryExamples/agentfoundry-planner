@@ -7,11 +7,22 @@
     └── repo-analyzer.config.json
   └── workflows
     └── af_maintenance.yml
+├── planner_service
+  ├── __init__.py
+  ├── api.py
+  ├── logging.py
+  └── models.py
 ├── repo-analysis-output
   ├── dependencies.json
   ├── dependencies.md
   ├── SUMMARY.md
   ├── tree.json
   └── tree.md
+├── tests
+  ├── __init__.py
+  └── test_app.py
+├── .gitignore
+├── Dockerfile
 ├── LICENSE
+├── pyproject.toml
 └── README.md

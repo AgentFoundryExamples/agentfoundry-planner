@@ -1,10 +1,136 @@
 {
-  "nodes": [],
-  "edges": [],
+  "nodes": [
+    {
+      "id": "planner_service/__init__.py",
+      "path": "planner_service/__init__.py",
+      "type": "file",
+      "external_dependencies": {
+        "stdlib": [],
+        "third-party": []
+      }
+    },
+    {
+      "id": "planner_service/api.py",
+      "path": "planner_service/api.py",
+      "type": "file",
+      "external_dependencies": {
+        "stdlib": [
+          "contextlib.asynccontextmanager",
+          "typing.AsyncGenerator",
+          "uuid.uuid4"
+        ],
+        "third-party": [
+          "fastapi.FastAPI",
+          "fastapi.HTTPException",
+          "fastapi.Request",
+          "fastapi.responses.JSONResponse"
+        ]
+      }
+    },
+    {
+      "id": "planner_service/logging.py",
+      "path": "planner_service/logging.py",
+      "type": "file",
+      "external_dependencies": {
+        "stdlib": [
+          "logging",
+          "os",
+          "sys"
+        ],
+        "third-party": [
+          "structlog"
+        ]
+      }
+    },
+    {
+      "id": "planner_service/models.py",
+      "path": "planner_service/models.py",
+      "type": "file",
+      "external_dependencies": {
+        "stdlib": [
+          "typing.Optional",
+          "uuid.UUID"
+        ],
+        "third-party": [
+          "pydantic.BaseModel",
+          "pydantic.Field"
+        ]
+      }
+    },
+    {
+      "id": "tests/__init__.py",
+      "path": "tests/__init__.py",
+      "type": "file",
+      "external_dependencies": {
+        "stdlib": [],
+        "third-party": []
+      }
+    },
+    {
+      "id": "tests/test_app.py",
+      "path": "tests/test_app.py",
+      "type": "file",
+      "external_dependencies": {
+        "stdlib": [
+          "uuid.UUID",
+          "uuid.uuid4"
+        ],
+        "third-party": [
+          "fastapi.testclient.TestClient",
+          "pytest"
+        ]
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "planner_service/api.py",
+      "target": "planner_service/__init__.py"
+    },
+    {
+      "source": "planner_service/api.py",
+      "target": "planner_service/logging.py"
+    },
+    {
+      "source": "planner_service/api.py",
+      "target": "planner_service/models.py"
+    },
+    {
+      "source": "tests/test_app.py",
+      "target": "planner_service/api.py"
+    },
+    {
+      "source": "tests/test_app.py",
+      "target": "planner_service/models.py"
+    },
+    {
+      "source": "tests/test_app.py",
+      "target": "planner_service/logging.py"
+    }
+  ],
   "external_dependencies_summary": {
-    "stdlib": [],
-    "third-party": [],
-    "stdlib_count": 0,
-    "third-party_count": 0
+    "stdlib": [
+      "contextlib.asynccontextmanager",
+      "logging",
+      "os",
+      "sys",
+      "typing.AsyncGenerator",
+      "typing.Optional",
+      "uuid.UUID",
+      "uuid.uuid4"
+    ],
+    "third-party": [
+      "fastapi.FastAPI",
+      "fastapi.HTTPException",
+      "fastapi.Request",
+      "fastapi.responses.JSONResponse",
+      "fastapi.testclient.TestClient",
+      "pydantic.BaseModel",
+      "pydantic.Field",
+      "pytest",
+      "structlog"
+    ],
+    "stdlib_count": 8,
+    "third-party_count": 9
   }
 }
