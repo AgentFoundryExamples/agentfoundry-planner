@@ -18,6 +18,7 @@
 # ============================================================
 """Tests for context driver abstraction and stub implementation."""
 
+import builtins
 import sys
 from unittest.mock import MagicMock, patch
 
@@ -129,23 +130,25 @@ class TestGetContextDriverFactory:
 
     def test_uses_private_backend_when_available(self) -> None:
         """Factory uses private backend when successfully imported."""
-        mock_module = MagicMock()
         mock_driver_instance = MagicMock()
-        mock_module.GitHubContextDriver.return_value = mock_driver_instance
+        mock_github_context_driver = MagicMock(return_value=mock_driver_instance)
 
-        with patch.dict(sys.modules, {"af_github_core": mock_module}):
-            # Need to reimport to pick up the mocked module
-            import importlib
+        # Create a mock module with the expected class
+        mock_module = MagicMock()
+        mock_module.GitHubContextDriver = mock_github_context_driver
 
-            from planner_service import context_driver
+        import builtins
+        original_import = builtins.__import__
 
-            importlib.reload(context_driver)
+        def mock_import(name, *args, **kwargs):
+            if name == "af_github_core":
+                return mock_module
+            return original_import(name, *args, **kwargs)
 
-            driver = context_driver.get_context_driver()
+        with patch.object(builtins, "__import__", side_effect=mock_import):
+            driver = get_context_driver()
             assert driver is mock_driver_instance
-
-            # Clean up - reload to restore normal behavior
-            importlib.reload(context_driver)
+            mock_github_context_driver.assert_called_once()
 
     def test_logs_fallback_on_import_error(self) -> None:
         """Factory logs when falling back to stub driver."""
