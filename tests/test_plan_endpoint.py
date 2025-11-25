@@ -399,6 +399,21 @@ class TestPlanEndpointValidation:
         response = client.post("/v1/plan", json=payload)
         assert response.status_code == 422
 
+    def test_plan_rejects_non_string_list_items(self, client: TestClient) -> None:
+        """Plan endpoint rejects non-string items in lists (strict typing)."""
+        payload = {
+            "repository": {"owner": "test-owner", "name": "test-repo"},
+            "user_input": {
+                "purpose": "Test purpose",
+                "vision": "Test vision",
+                "must": [123],  # Non-string should fail with StrictStr
+                "dont": ["Valid"],
+                "nice": ["Be fast"],
+            },
+        }
+        response = client.post("/v1/plan", json=payload)
+        assert response.status_code == 422
+
 
 class TestHealthEndpoints:
     """Tests for health check endpoints."""

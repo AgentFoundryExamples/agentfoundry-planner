@@ -21,7 +21,7 @@
 from typing import Optional
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field, ValidationInfo, field_validator
+from pydantic import BaseModel, ConfigDict, Field, StrictStr, ValidationInfo, field_validator
 
 
 def _validate_non_empty_string(value: str, field_name: str = "field") -> str:
@@ -83,6 +83,7 @@ class UserInput(BaseModel):
     """User-provided input for the planning request (AF v1.1).
 
     Enforces exactly five keys with strict typing and validation for string lists.
+    Uses StrictStr to reject non-string values without coercion.
     """
 
     model_config = ConfigDict(extra="forbid")
@@ -93,13 +94,13 @@ class UserInput(BaseModel):
     vision: str = Field(
         ..., description="The desired end state or vision for the project"
     )
-    must: list[str] = Field(
+    must: list[StrictStr] = Field(
         ..., description="List of requirements that must be fulfilled"
     )
-    dont: list[str] = Field(
+    dont: list[StrictStr] = Field(
         ..., description="List of constraints or things to avoid"
     )
-    nice: list[str] = Field(
+    nice: list[StrictStr] = Field(
         ..., description="List of nice-to-have features or improvements"
     )
 
