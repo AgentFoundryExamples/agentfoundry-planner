@@ -20,7 +20,6 @@
 
 from typing import Protocol, runtime_checkable
 
-from planner_service import __version__
 from planner_service.logging import get_logger
 from planner_service.models import PlanningContext
 
@@ -74,7 +73,8 @@ class StubPromptEngine:
 
         Returns:
             A dictionary with deterministic output including request_id,
-            plan_version, repository metadata, status, and a prompt preview.
+            plan_version (af/1.1-stub), repository metadata, mirrored context
+            and user_input data, status, and a prompt preview.
         """
         # Use the request_id from the PlanningContext to maintain consistency
         request_id = str(ctx.request_id)
@@ -107,10 +107,34 @@ class StubPromptEngine:
         else:
             prompt_preview = f"{base_preview}{purpose}"
 
+        # Mirror user_input data for validator inspection
+        user_input_mirror = {
+            "purpose": ctx.user_input.purpose,
+            "vision": ctx.user_input.vision,
+            "must": list(ctx.user_input.must),
+            "dont": list(ctx.user_input.dont),
+            "nice": list(ctx.user_input.nice),
+        }
+
+        # Mirror context data (projects list) for validator inspection
+        context_mirror = [
+            {
+                "repo_owner": p.repo_owner,
+                "repo_name": p.repo_name,
+                "ref": p.ref,
+                "tree_json": p.tree_json,
+                "dependency_json": p.dependency_json,
+                "summary_json": p.summary_json,
+            }
+            for p in ctx.projects
+        ]
+
         return {
             "request_id": request_id,
-            "plan_version": __version__,
+            "plan_version": "af/1.1-stub",
             "repository": repository_metadata,
+            "user_input": user_input_mirror,
+            "context": context_mirror,
             "status": "success",
             "prompt_preview": prompt_preview,
         }

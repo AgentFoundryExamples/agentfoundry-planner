@@ -328,17 +328,26 @@ from planner_service.models import ProjectContext, RepositoryPointer
 class MyCustomDriver:
     def fetch_context(self, repo: RepositoryPointer) -> ProjectContext:
         # Your implementation here (AF v1.1 format)
+        # JSON artifact strings should default to "{}" when empty
         return ProjectContext(
             repo_owner=repo.owner,
             repo_name=repo.name,
             ref=repo.ref,
-            tree_json=None,
-            dependency_json=None,
-            summary_json=None,
+            tree_json="{}",  # Default to "{}" not None for strict typing
+            dependency_json="{}",
+            summary_json="{}",
         )
 ```
 
 2. To use as the default driver, create a package named `af_github_core` with a `GitHubContextDriver` class, or modify the factory function in `context_driver.py`.
+
+### StubContextDriver Output
+
+The `StubContextDriver` returns `ProjectContext` entries with:
+- `repo_owner`, `repo_name`, `ref`: Repository coordinates from the input `RepositoryPointer`
+- `tree_json`, `dependency_json`, `summary_json`: JSON strings defaulting to `"{}"` when empty (never `None`)
+
+This ensures strict typing compliance when the context is used in `PlanningContext` construction and validator payloads.
 
 ### Mock Context Fixtures
 
@@ -347,9 +356,9 @@ The `StubContextDriver` loads mock data from `planner_service/resources/mock_con
 ```json
 {
   "default": {
-    "tree_json": null,
-    "dependency_json": null,
-    "summary_json": null
+    "tree_json": "{\"type\": \"tree\", \"entries\": []}",
+    "dependency_json": "{\"dependencies\": []}",
+    "summary_json": "{\"default_branch\": \"main\", \"languages\": []}"
   },
   "repositories": {
     "owner/repo": {
@@ -361,7 +370,7 @@ The `StubContextDriver` loads mock data from `planner_service/resources/mock_con
 }
 ```
 
-- `default`: Default context returned for unknown repositories
+- `default`: Default context returned for unknown repositories (JSON strings default to `"{}"` if missing)
 - `repositories`: Specific context for known repositories (keyed by `owner/name`)
 
 To add custom mock data, edit the fixture file or provide repository-specific entries.
@@ -403,20 +412,39 @@ The stub engine returns a deterministic payload with the following structure:
 ```json
 {
   "request_id": "uuid-string",
-  "plan_version": "0.1.0",
+  "plan_version": "af/1.1-stub",
   "repository": {
     "owner": "string",
     "name": "string",
     "ref": "refs/heads/main"
   },
+  "user_input": {
+    "purpose": "string",
+    "vision": "string",
+    "must": ["string", ...],
+    "dont": ["string", ...],
+    "nice": ["string", ...]
+  },
+  "context": [
+    {
+      "repo_owner": "string",
+      "repo_name": "string",
+      "ref": "refs/heads/main",
+      "tree_json": "{}",
+      "dependency_json": "{}",
+      "summary_json": "{}"
+    }
+  ],
   "status": "success",
   "prompt_preview": "[STUB] Planning request for owner/name: purpose text..."
 }
 ```
 
 - `request_id`: The request ID from PlanningContext (matches top-level response ID)
-- `plan_version`: Version of the plan output schema (matches package version)
-- `repository`: Repository metadata from the planning context (uses AF v1.1 field names)
+- `plan_version`: Version of the plan output schema (uses `af/1.1-stub` for stub engine)
+- `repository`: Repository metadata from the first project context (uses AF v1.1 field names)
+- `user_input`: Mirrored user input data from PlanningContext for validator inspection
+- `context`: Mirrored project contexts list with repository coordinates and JSON artifact strings
 - `status`: Always "success" for stub (real engines may return "failure")
 - `prompt_preview`: Stub preview showing `{repo_owner}/{repo_name}: {purpose}` (does not expose real prompts)
 
@@ -439,13 +467,33 @@ class MyCustomEngine:
         repo_ref = project.ref if project else "refs/heads/main"
         
         # Your implementation here (may call LLM, rules engine, etc.)
+        # Must include request_id and plan_version for validator
         return {
             "request_id": str(ctx.request_id),
+            "plan_version": "af/1.1-custom",  # Use your version identifier
             "repository": {
                 "owner": repo_owner,
                 "name": repo_name,
                 "ref": repo_ref,
             },
+            "user_input": {  # Mirror user_input for validator inspection
+                "purpose": ctx.user_input.purpose,
+                "vision": ctx.user_input.vision,
+                "must": list(ctx.user_input.must),
+                "dont": list(ctx.user_input.dont),
+                "nice": list(ctx.user_input.nice),
+            },
+            "context": [  # Mirror project contexts for validator inspection
+                {
+                    "repo_owner": p.repo_owner,
+                    "repo_name": p.repo_name,
+                    "ref": p.ref,
+                    "tree_json": p.tree_json,
+                    "dependency_json": p.dependency_json,
+                    "summary_json": p.summary_json,
+                }
+                for p in ctx.projects
+            ],
             "status": "success",
             "prompt_preview": "...",
         }

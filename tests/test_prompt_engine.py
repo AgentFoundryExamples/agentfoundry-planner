@@ -24,7 +24,6 @@ from uuid import uuid4
 
 import pytest
 
-from planner_service import __version__
 from planner_service.models import (
     PlanningContext,
     ProjectContext,
@@ -91,11 +90,11 @@ class TestStubPromptEngine:
     def test_run_returns_plan_version(
         self, sample_planning_context: PlanningContext
     ) -> None:
-        """run returns plan_version matching the package version."""
+        """run returns plan_version af/1.1-stub for the stub engine."""
         engine = StubPromptEngine()
         result = engine.run(sample_planning_context)
 
-        assert result["plan_version"] == __version__
+        assert result["plan_version"] == "af/1.1-stub"
 
     def test_run_returns_success_status(
         self, sample_planning_context: PlanningContext
@@ -302,3 +301,105 @@ class TestMultipleProjectContextHandling:
         assert result["repository"]["owner"] == "first-owner"
         assert result["repository"]["name"] == "first-repo"
         assert result["repository"]["ref"] == "refs/heads/feature-1"
+
+
+class TestStubPromptEngineMirroredData:
+    """Tests for mirrored PlanningContext data in StubPromptEngine output (AF v1.1)."""
+
+    def test_run_returns_user_input_mirror(self) -> None:
+        """run returns mirrored user_input data."""
+        ctx = PlanningContext(
+            request_id=uuid4(),
+            user_input=UserInput(
+                purpose="Build authentication system",
+                vision="Secure login flow",
+                must=["Use OAuth2", "Support MFA"],
+                dont=["Store plain text passwords"],
+                nice=["Add social login"],
+            ),
+            projects=[
+                ProjectContext(
+                    repo_owner="test-org",
+                    repo_name="test-repo",
+                    ref="refs/heads/main",
+                ),
+            ],
+        )
+
+        engine = StubPromptEngine()
+        result = engine.run(ctx)
+
+        assert "user_input" in result
+        assert result["user_input"]["purpose"] == "Build authentication system"
+        assert result["user_input"]["vision"] == "Secure login flow"
+        assert result["user_input"]["must"] == ["Use OAuth2", "Support MFA"]
+        assert result["user_input"]["dont"] == ["Store plain text passwords"]
+        assert result["user_input"]["nice"] == ["Add social login"]
+
+    def test_run_returns_context_mirror(self) -> None:
+        """run returns mirrored context data (projects list)."""
+        ctx = PlanningContext(
+            request_id=uuid4(),
+            user_input=UserInput(
+                purpose="Test purpose",
+                vision="Test vision",
+                must=["Requirement"],
+                dont=["Constraint"],
+                nice=["Optional"],
+            ),
+            projects=[
+                ProjectContext(
+                    repo_owner="org1",
+                    repo_name="repo1",
+                    ref="refs/heads/main",
+                    tree_json='{"type": "tree"}',
+                    dependency_json='{"deps": []}',
+                    summary_json='{"lang": "python"}',
+                ),
+            ],
+        )
+
+        engine = StubPromptEngine()
+        result = engine.run(ctx)
+
+        assert "context" in result
+        assert len(result["context"]) == 1
+        assert result["context"][0]["repo_owner"] == "org1"
+        assert result["context"][0]["repo_name"] == "repo1"
+        assert result["context"][0]["ref"] == "refs/heads/main"
+        assert result["context"][0]["tree_json"] == '{"type": "tree"}'
+        assert result["context"][0]["dependency_json"] == '{"deps": []}'
+        assert result["context"][0]["summary_json"] == '{"lang": "python"}'
+
+    def test_run_mirrors_multiple_projects(self) -> None:
+        """run mirrors all projects when multiple are provided."""
+        ctx = PlanningContext(
+            request_id=uuid4(),
+            user_input=UserInput(
+                purpose="Multi-repo planning",
+                vision="Coordinated changes",
+                must=["Sync changes"],
+                dont=["Break API"],
+                nice=["Update docs"],
+            ),
+            projects=[
+                ProjectContext(
+                    repo_owner="org",
+                    repo_name="frontend",
+                    ref="refs/heads/main",
+                ),
+                ProjectContext(
+                    repo_owner="org",
+                    repo_name="backend",
+                    ref="refs/heads/develop",
+                ),
+            ],
+        )
+
+        engine = StubPromptEngine()
+        result = engine.run(ctx)
+
+        assert len(result["context"]) == 2
+        assert result["context"][0]["repo_name"] == "frontend"
+        assert result["context"][1]["repo_name"] == "backend"
+        assert result["context"][1]["ref"] == "refs/heads/develop"
