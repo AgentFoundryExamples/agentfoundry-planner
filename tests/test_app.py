@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # ============================================================
-"""Unit and integration tests for the planner service."""
+"""Unit and integration tests for the planner service (AF v1.1)."""
 
 from uuid import UUID
 
@@ -30,6 +30,17 @@ from planner_service.api import app
 def client() -> TestClient:
     """Create a test client for the FastAPI app."""
     return TestClient(app)
+
+
+def _make_user_input() -> dict:
+    """Create a valid AF v1.1 user input payload."""
+    return {
+        "purpose": "Create a new feature",
+        "vision": "A fully functional authentication system",
+        "must": ["Implement login", "Implement logout"],
+        "dont": ["Use deprecated APIs"],
+        "nice": ["Add remember me feature"],
+    }
 
 
 class TestHealthEndpoint:
@@ -52,18 +63,16 @@ class TestHealthEndpoint:
 
 
 class TestPlanEndpoint:
-    """Tests for the /v1/plan endpoint."""
+    """Tests for the /v1/plan endpoint (AF v1.1)."""
 
     def test_plan_returns_pending_status(self, client: TestClient) -> None:
         """Plan endpoint returns completed status for valid request."""
         payload = {
             "repository": {
                 "owner": "test-owner",
-                "repo": "test-repo",
+                "name": "test-repo",
             },
-            "user_input": {
-                "query": "Create a new feature",
-            },
+            "user_input": _make_user_input(),
         }
         response = client.post("/v1/plan", json=payload)
         assert response.status_code == 200
@@ -75,11 +84,9 @@ class TestPlanEndpoint:
         payload = {
             "repository": {
                 "owner": "test-owner",
-                "repo": "test-repo",
+                "name": "test-repo",
             },
-            "user_input": {
-                "query": "Create a new feature",
-            },
+            "user_input": _make_user_input(),
         }
         response = client.post("/v1/plan", json=payload)
         data = response.json()
@@ -98,11 +105,9 @@ class TestPlanEndpoint:
         payload = {
             "repository": {
                 "owner": "test-owner",
-                "repo": "test-repo",
+                "name": "test-repo",
             },
-            "user_input": {
-                "query": "Create a new feature",
-            },
+            "user_input": _make_user_input(),
             "request_id": client_request_id,
         }
         response = client.post("/v1/plan", json=payload)
@@ -114,9 +119,7 @@ class TestPlanEndpoint:
     ) -> None:
         """Plan endpoint returns validation error for missing repository."""
         payload = {
-            "user_input": {
-                "query": "Create a new feature",
-            },
+            "user_input": _make_user_input(),
         }
         response = client.post("/v1/plan", json=payload)
         assert response.status_code == 422
@@ -131,7 +134,7 @@ class TestPlanEndpoint:
         payload = {
             "repository": {
                 "owner": "test-owner",
-                "repo": "test-repo",
+                "name": "test-repo",
             },
         }
         response = client.post("/v1/plan", json=payload)
@@ -142,29 +145,35 @@ class TestPlanEndpoint:
         payload = {
             "repository": {
                 "owner": "test-owner",
-                "repo": "test-repo",
-                "ref": "main",
+                "name": "test-repo",
+                "ref": "refs/heads/feature",
             },
-            "user_input": {
-                "query": "Create a new feature",
-                "context": "This is additional context",
-            },
+            "user_input": _make_user_input(),
         }
         response = client.post("/v1/plan", json=payload)
         assert response.status_code == 200
 
 
 class TestModels:
-    """Tests for Pydantic models."""
+    """Tests for Pydantic models (AF v1.1)."""
 
     def test_repository_pointer_required_fields(self) -> None:
-        """RepositoryPointer requires owner and repo."""
+        """RepositoryPointer requires owner and name."""
         from planner_service.models import RepositoryPointer
 
-        pointer = RepositoryPointer(owner="test", repo="repo")
+        pointer = RepositoryPointer(owner="test", name="repo")
         assert pointer.owner == "test"
-        assert pointer.repo == "repo"
-        assert pointer.ref is None
+        assert pointer.name == "repo"
+        assert pointer.ref == "refs/heads/main"  # Default value
+
+    def test_repository_pointer_with_custom_ref(self) -> None:
+        """RepositoryPointer accepts custom ref."""
+        from planner_service.models import RepositoryPointer
+
+        pointer = RepositoryPointer(
+            owner="test", name="repo", ref="refs/heads/feature"
+        )
+        assert pointer.ref == "refs/heads/feature"
 
     def test_plan_response_fields(self) -> None:
         """PlanResponse has correct field structure."""
@@ -176,7 +185,7 @@ class TestModels:
             request_id=uuid4(),
             run_id=uuid4(),
             status="completed",
-            steps=None,
+            payload=None,
         )
         assert response.status == "completed"
 

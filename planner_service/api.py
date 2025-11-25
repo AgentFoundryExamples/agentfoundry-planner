@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # ============================================================
-"""FastAPI application for the planner service."""
+"""FastAPI application for the planner service (AF v1.1)."""
 
 import os
 from contextlib import asynccontextmanager
@@ -104,7 +104,7 @@ async def validation_exception_handler(
     # Build a summary message from validation errors
     error_messages = []
     for error in exc.errors():
-        loc = ".".join(str(l) for l in error["loc"])
+        loc = ".".join(str(part) for part in error["loc"])
         error_messages.append(f"{loc}: {error['msg']}")
 
     error_response = ErrorResponse(
@@ -172,14 +172,14 @@ async def create_plan(
 
     # Use provided request_id or generate a new one
     request_id = request.request_id or uuid4()
-    repo_str = f"{request.repository.owner}/{request.repository.repo}"
+    repo_str = f"{request.repository.owner}/{request.repository.name}"
 
     logger.info(
         "plan_request_received",
         request_id=str(request_id),
         repository=repo_str,
         repo_owner=request.repository.owner,
-        repo_name=request.repository.repo,
+        repo_name=request.repository.name,
         repo_ref=request.repository.ref,
         user_id=auth.user_id,
         outcome="pending",
@@ -195,7 +195,7 @@ async def create_plan(
             request_id=str(request_id),
             repository=repo_str,
             repo_owner=request.repository.owner,
-            repo_name=request.repository.repo,
+            repo_name=request.repository.name,
             repo_ref=request.repository.ref,
             user_id=auth.user_id,
             error=str(e),
@@ -218,7 +218,7 @@ async def create_plan(
             request_id=str(request_id),
             repository=repo_str,
             repo_owner=request.repository.owner,
-            repo_name=request.repository.repo,
+            repo_name=request.repository.name,
             repo_ref=request.repository.ref,
             user_id=auth.user_id,
             error=str(e),
@@ -236,11 +236,11 @@ async def create_plan(
             content=error_response.model_dump(mode="json", exclude_none=True),
         )
 
-    # Step 2: Build PlanningContext
+    # Step 2: Build PlanningContext (AF v1.1)
     planning_context = PlanningContext(
-        project=project_context,
+        request_id=request_id,
         user_input=request.user_input,
-        session_id=str(request_id),
+        projects=[project_context],
     )
 
     # Step 3: Invoke prompt engine
@@ -253,7 +253,7 @@ async def create_plan(
             request_id=str(request_id),
             repository=repo_str,
             repo_owner=request.repository.owner,
-            repo_name=request.repository.repo,
+            repo_name=request.repository.name,
             repo_ref=request.repository.ref,
             user_id=auth.user_id,
             error=str(e),
@@ -287,7 +287,7 @@ async def create_plan(
         run_id=str(run_id),
         repository=repo_str,
         repo_owner=request.repository.owner,
-        repo_name=request.repository.repo,
+        repo_name=request.repository.name,
         repo_ref=request.repository.ref,
         user_id=auth.user_id,
         outcome=outcome,
@@ -298,7 +298,7 @@ async def create_plan(
         request_id=request_id,
         run_id=run_id,
         status=status,
-        steps=None,
+        payload=engine_result if status == "completed" else None,
     )
 
 
@@ -354,7 +354,7 @@ async def debug_context(
     logger.debug(
         "debug_context_request",
         request_id=str(request_id),
-        repository=f"{repository.owner}/{repository.repo}",
+        repository=f"{repository.owner}/{repository.name}",
     )
 
     driver = get_context_driver()

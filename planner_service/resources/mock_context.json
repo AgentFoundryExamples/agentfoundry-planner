@@ -1,16 +1,19 @@
 {
   "default": {
-    "default_branch": "main",
-    "languages": ["python"]
+    "tree_json": "{\"type\": \"tree\", \"entries\": []}",
+    "dependency_json": "{\"dependencies\": []}",
+    "summary_json": "{\"default_branch\": \"main\", \"languages\": [\"python\"]}"
   },
   "repositories": {
     "example-org/example-repo": {
-      "default_branch": "main",
-      "languages": ["python", "javascript"]
+      "tree_json": "{\"type\": \"tree\", \"entries\": [{\"path\": \"src\", \"type\": \"tree\"}, {\"path\": \"README.md\", \"type\": \"blob\"}]}",
+      "dependency_json": "{\"dependencies\": [{\"name\": \"fastapi\", \"version\": \"0.109.1\"}]}",
+      "summary_json": "{\"default_branch\": \"main\", \"languages\": [\"python\", \"javascript\"]}"
     },
     "test-owner/test-repo": {
-      "default_branch": "develop",
-      "languages": ["typescript", "rust"]
+      "tree_json": "{\"type\": \"tree\", \"entries\": [{\"path\": \"lib\", \"type\": \"tree\"}, {\"path\": \"package.json\", \"type\": \"blob\"}]}",
+      "dependency_json": "{\"dependencies\": [{\"name\": \"typescript\", \"version\": \"5.0.0\"}]}",
+      "summary_json": "{\"default_branch\": \"develop\", \"languages\": [\"typescript\", \"rust\"]}"
     }
   }
 }

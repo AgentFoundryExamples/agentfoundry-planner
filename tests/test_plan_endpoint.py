@@ -16,9 +16,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # ============================================================
-"""Tests for the POST /v1/plan endpoint including auth, context driver, and prompt engine."""
+"""Tests for the POST /v1/plan endpoint including auth, context driver, and prompt engine (AF v1.1)."""
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 from uuid import UUID
 
 import pytest
@@ -33,6 +33,17 @@ def client() -> TestClient:
     return TestClient(app)
 
 
+def _make_user_input() -> dict:
+    """Create a valid AF v1.1 user input payload."""
+    return {
+        "purpose": "Test query",
+        "vision": "A completed test",
+        "must": ["Pass all tests"],
+        "dont": ["Fail"],
+        "nice": ["Be fast"],
+    }
+
+
 class TestPlanEndpointAuth:
     """Tests for authentication in /v1/plan endpoint."""
 
@@ -41,8 +52,8 @@ class TestPlanEndpointAuth:
     ) -> None:
         """Plan endpoint allows missing auth header (stub user for now)."""
         payload = {
-            "repository": {"owner": "test-owner", "repo": "test-repo"},
-            "user_input": {"query": "Test query"},
+            "repository": {"owner": "test-owner", "name": "test-repo"},
+            "user_input": _make_user_input(),
         }
         response = client.post("/v1/plan", json=payload)
         # Should succeed with stub user
@@ -51,8 +62,8 @@ class TestPlanEndpointAuth:
     def test_plan_accepts_bearer_token(self, client: TestClient) -> None:
         """Plan endpoint accepts Bearer token in Authorization header."""
         payload = {
-            "repository": {"owner": "test-owner", "repo": "test-repo"},
-            "user_input": {"query": "Test query"},
+            "repository": {"owner": "test-owner", "name": "test-repo"},
+            "user_input": _make_user_input(),
         }
         response = client.post(
             "/v1/plan",
@@ -66,8 +77,8 @@ class TestPlanEndpointAuth:
     ) -> None:
         """Plan endpoint handles invalid auth format with stub user."""
         payload = {
-            "repository": {"owner": "test-owner", "repo": "test-repo"},
-            "user_input": {"query": "Test query"},
+            "repository": {"owner": "test-owner", "name": "test-repo"},
+            "user_input": _make_user_input(),
         }
         response = client.post(
             "/v1/plan",
@@ -84,19 +95,36 @@ class TestPlanEndpointHappyPath:
     def test_plan_returns_completed_status(self, client: TestClient) -> None:
         """Plan endpoint returns completed status when prompt engine succeeds."""
         payload = {
-            "repository": {"owner": "test-owner", "repo": "test-repo"},
-            "user_input": {"query": "Test query"},
+            "repository": {"owner": "test-owner", "name": "test-repo"},
+            "user_input": _make_user_input(),
         }
         response = client.post("/v1/plan", json=payload)
         assert response.status_code == 200
         data = response.json()
         assert data["status"] == "completed"
 
+    def test_plan_returns_payload_on_success(self, client: TestClient) -> None:
+        """Plan endpoint returns engine result in payload when completed."""
+        payload = {
+            "repository": {"owner": "test-owner", "name": "test-repo"},
+            "user_input": _make_user_input(),
+        }
+        response = client.post("/v1/plan", json=payload)
+        assert response.status_code == 200
+        data = response.json()
+        assert data["status"] == "completed"
+        assert data["payload"] is not None
+        # Verify payload contains engine result fields
+        assert "status" in data["payload"]
+        assert data["payload"]["status"] == "success"
+        assert "repository" in data["payload"]
+        assert "prompt_preview" in data["payload"]
+
     def test_plan_returns_request_id_and_run_id(self, client: TestClient) -> None:
         """Plan endpoint returns valid request_id and run_id."""
         payload = {
-            "repository": {"owner": "test-owner", "repo": "test-repo"},
-            "user_input": {"query": "Test query"},
+            "repository": {"owner": "test-owner", "name": "test-repo"},
+            "user_input": _make_user_input(),
         }
         response = client.post("/v1/plan", json=payload)
         data = response.json()
@@ -112,8 +140,8 @@ class TestPlanEndpointHappyPath:
         """Plan endpoint echoes client-provided request_id."""
         client_request_id = "550e8400-e29b-41d4-a716-446655440000"
         payload = {
-            "repository": {"owner": "test-owner", "repo": "test-repo"},
-            "user_input": {"query": "Test query"},
+            "repository": {"owner": "test-owner", "name": "test-repo"},
+            "user_input": _make_user_input(),
             "request_id": client_request_id,
         }
         response = client.post("/v1/plan", json=payload)
@@ -138,8 +166,8 @@ class TestPlanEndpointContextDriverFailure:
             side_effect=FileNotFoundError("Mock fixture missing"),
         ):
             payload = {
-                "repository": {"owner": "test-owner", "repo": "test-repo"},
-                "user_input": {"query": "Test query"},
+                "repository": {"owner": "test-owner", "name": "test-repo"},
+                "user_input": _make_user_input(),
             }
             response = client.post("/v1/plan", json=payload)
 
@@ -162,8 +190,8 @@ class TestPlanEndpointContextDriverFailure:
             side_effect=RuntimeError("Unexpected error"),
         ):
             payload = {
-                "repository": {"owner": "test-owner", "repo": "test-repo"},
-                "user_input": {"query": "Test query"},
+                "repository": {"owner": "test-owner", "name": "test-repo"},
+                "user_input": _make_user_input(),
             }
             response = client.post("/v1/plan", json=payload)
 
@@ -187,8 +215,8 @@ class TestPlanEndpointPromptEngineFailure:
             StubPromptEngine, "run", side_effect=RuntimeError("LLM unavailable")
         ):
             payload = {
-                "repository": {"owner": "test-owner", "repo": "test-repo"},
-                "user_input": {"query": "Test query"},
+                "repository": {"owner": "test-owner", "name": "test-repo"},
+                "user_input": _make_user_input(),
             }
             response = client.post("/v1/plan", json=payload)
 
@@ -210,8 +238,8 @@ class TestPlanEndpointPromptEngineFailure:
             StubPromptEngine, "run", side_effect=RuntimeError("LLM unavailable")
         ):
             payload = {
-                "repository": {"owner": "test-owner", "repo": "test-repo"},
-                "user_input": {"query": "Test query"},
+                "repository": {"owner": "test-owner", "name": "test-repo"},
+                "user_input": _make_user_input(),
                 "request_id": client_request_id,
             }
             response = client.post("/v1/plan", json=payload)
@@ -222,13 +250,13 @@ class TestPlanEndpointPromptEngineFailure:
 
 
 class TestPlanEndpointValidation:
-    """Tests for request validation in /v1/plan endpoint."""
+    """Tests for request validation in /v1/plan endpoint (AF v1.1)."""
 
     def test_plan_missing_repository_returns_422_with_request_id(
         self, client: TestClient
     ) -> None:
         """Plan endpoint returns 422 with request_id for missing repository."""
-        payload = {"user_input": {"query": "Test query"}}
+        payload = {"user_input": _make_user_input()}
         response = client.post("/v1/plan", json=payload)
         assert response.status_code == 422
         data = response.json()
@@ -241,7 +269,7 @@ class TestPlanEndpointValidation:
         self, client: TestClient
     ) -> None:
         """Plan endpoint returns 422 with request_id for missing user_input."""
-        payload = {"repository": {"owner": "test-owner", "repo": "test-repo"}}
+        payload = {"repository": {"owner": "test-owner", "name": "test-repo"}}
         response = client.post("/v1/plan", json=payload)
         assert response.status_code == 422
         data = response.json()
@@ -256,7 +284,7 @@ class TestPlanEndpointValidation:
         """Plan endpoint echoes client-provided request_id on validation errors."""
         client_request_id = "550e8400-e29b-41d4-a716-446655440000"
         payload = {
-            "user_input": {"query": "Test query"},
+            "user_input": _make_user_input(),
             "request_id": client_request_id,
         }
         response = client.post("/v1/plan", json=payload)
@@ -265,17 +293,156 @@ class TestPlanEndpointValidation:
         assert data["request_id"] == client_request_id
         assert "run_id" not in data
 
-    def test_plan_accepts_large_must_arrays(self, client: TestClient) -> None:
-        """Plan endpoint validates large payloads without performance issues."""
+    def test_plan_rejects_empty_must_list_entries(self, client: TestClient) -> None:
+        """Plan endpoint rejects empty strings in must list."""
         payload = {
-            "repository": {"owner": "test-owner", "repo": "test-repo"},
+            "repository": {"owner": "test-owner", "name": "test-repo"},
             "user_input": {
-                "query": "Test query",
-                "context": "A" * 10000,  # Large context string
+                "purpose": "Test",
+                "vision": "Test vision",
+                "must": ["Valid", ""],  # Empty string should fail
+                "dont": ["Fail"],
+                "nice": ["Be fast"],
             },
         }
         response = client.post("/v1/plan", json=payload)
-        assert response.status_code == 200
+        assert response.status_code == 422
+
+    def test_plan_rejects_whitespace_only_entries(self, client: TestClient) -> None:
+        """Plan endpoint rejects whitespace-only strings in lists."""
+        payload = {
+            "repository": {"owner": "test-owner", "name": "test-repo"},
+            "user_input": {
+                "purpose": "Test",
+                "vision": "Test vision",
+                "must": ["Valid", "   "],  # Whitespace only should fail
+                "dont": ["Fail"],
+                "nice": ["Be fast"],
+            },
+        }
+        response = client.post("/v1/plan", json=payload)
+        assert response.status_code == 422
+
+    def test_plan_rejects_extra_user_input_keys(self, client: TestClient) -> None:
+        """Plan endpoint rejects unexpected keys in user_input (AF v1.1)."""
+        payload = {
+            "repository": {"owner": "test-owner", "name": "test-repo"},
+            "user_input": {
+                "purpose": "Test",
+                "vision": "Test vision",
+                "must": ["Valid"],
+                "dont": ["Fail"],
+                "nice": ["Be fast"],
+                "extra_key": "should fail",  # Extra key not allowed
+            },
+        }
+        response = client.post("/v1/plan", json=payload)
+        assert response.status_code == 422
+
+    def test_plan_rejects_empty_purpose(self, client: TestClient) -> None:
+        """Plan endpoint rejects empty purpose string."""
+        payload = {
+            "repository": {"owner": "test-owner", "name": "test-repo"},
+            "user_input": {
+                "purpose": "",  # Empty string should fail
+                "vision": "Test vision",
+                "must": ["Valid"],
+                "dont": ["Fail"],
+                "nice": ["Be fast"],
+            },
+        }
+        response = client.post("/v1/plan", json=payload)
+        assert response.status_code == 422
+
+    def test_plan_rejects_whitespace_only_purpose(self, client: TestClient) -> None:
+        """Plan endpoint rejects whitespace-only purpose string."""
+        payload = {
+            "repository": {"owner": "test-owner", "name": "test-repo"},
+            "user_input": {
+                "purpose": "   ",  # Whitespace only should fail
+                "vision": "Test vision",
+                "must": ["Valid"],
+                "dont": ["Fail"],
+                "nice": ["Be fast"],
+            },
+        }
+        response = client.post("/v1/plan", json=payload)
+        assert response.status_code == 422
+
+    def test_plan_rejects_empty_vision(self, client: TestClient) -> None:
+        """Plan endpoint rejects empty vision string."""
+        payload = {
+            "repository": {"owner": "test-owner", "name": "test-repo"},
+            "user_input": {
+                "purpose": "Test purpose",
+                "vision": "",  # Empty string should fail
+                "must": ["Valid"],
+                "dont": ["Fail"],
+                "nice": ["Be fast"],
+            },
+        }
+        response = client.post("/v1/plan", json=payload)
+        assert response.status_code == 422
+
+    def test_plan_rejects_whitespace_only_vision(self, client: TestClient) -> None:
+        """Plan endpoint rejects whitespace-only vision string."""
+        payload = {
+            "repository": {"owner": "test-owner", "name": "test-repo"},
+            "user_input": {
+                "purpose": "Test purpose",
+                "vision": "   ",  # Whitespace only should fail
+                "must": ["Valid"],
+                "dont": ["Fail"],
+                "nice": ["Be fast"],
+            },
+        }
+        response = client.post("/v1/plan", json=payload)
+        assert response.status_code == 422
+
+    def test_plan_rejects_non_string_list_items(self, client: TestClient) -> None:
+        """Plan endpoint rejects non-string items in lists (strict typing)."""
+        payload = {
+            "repository": {"owner": "test-owner", "name": "test-repo"},
+            "user_input": {
+                "purpose": "Test purpose",
+                "vision": "Test vision",
+                "must": [123],  # Non-string should fail with StrictStr
+                "dont": ["Valid"],
+                "nice": ["Be fast"],
+            },
+        }
+        response = client.post("/v1/plan", json=payload)
+        assert response.status_code == 422
+
+    def test_plan_rejects_non_string_purpose_vision(self, client: TestClient) -> None:
+        """Plan endpoint rejects non-string purpose/vision (strict typing)."""
+        # Test non-string purpose
+        payload = {
+            "repository": {"owner": "test-owner", "name": "test-repo"},
+            "user_input": {
+                "purpose": 123,  # Non-string should fail with StrictStr
+                "vision": "Test vision",
+                "must": ["Required"],
+                "dont": ["Avoid this"],
+                "nice": ["Be fast"],
+            },
+        }
+        response = client.post("/v1/plan", json=payload)
+        assert response.status_code == 422
+
+        # Test non-string vision
+        payload = {
+            "repository": {"owner": "test-owner", "name": "test-repo"},
+            "user_input": {
+                "purpose": "Test purpose",
+                "vision": True,  # Non-string should fail with StrictStr
+                "must": ["Required"],
+                "dont": ["Avoid this"],
+                "nice": ["Be fast"],
+            },
+        }
+        response = client.post("/v1/plan", json=payload)
+        assert response.status_code == 422
 
 
 class TestHealthEndpoints:

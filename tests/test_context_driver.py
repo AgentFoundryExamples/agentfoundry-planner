@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # ============================================================
-"""Tests for context driver abstraction and stub implementation."""
+"""Tests for context driver abstraction and stub implementation (AF v1.1)."""
 
 import builtins
 import sys
@@ -55,61 +55,53 @@ class TestContextDriverProtocol:
 
 
 class TestStubContextDriver:
-    """Tests for the StubContextDriver implementation."""
+    """Tests for the StubContextDriver implementation (AF v1.1)."""
 
     def test_fetch_context_returns_project_context(self) -> None:
         """fetch_context returns a valid ProjectContext."""
         driver = StubContextDriver()
-        repo = RepositoryPointer(owner="test-owner", repo="test-repo")
+        repo = RepositoryPointer(owner="test-owner", name="test-repo")
 
         context = driver.fetch_context(repo)
 
-        assert context.repository.owner == "test-owner"
-        assert context.repository.repo == "test-repo"
-
-    def test_fetch_context_uses_fixture_data(self) -> None:
-        """fetch_context returns data from fixture for known repo."""
-        driver = StubContextDriver()
-        repo = RepositoryPointer(owner="test-owner", repo="test-repo")
-
-        context = driver.fetch_context(repo)
-
-        # Should match data from mock_context.json
-        assert context.default_branch == "develop"
-        assert context.languages == ["typescript", "rust"]
+        assert context.repo_owner == "test-owner"
+        assert context.repo_name == "test-repo"
 
     def test_fetch_context_uses_default_for_unknown_repo(self) -> None:
         """fetch_context returns default data for unknown repository."""
         driver = StubContextDriver()
-        repo = RepositoryPointer(owner="unknown", repo="unknown-repo")
+        repo = RepositoryPointer(owner="unknown", name="unknown-repo")
 
         context = driver.fetch_context(repo)
 
-        # Should use default mock data
-        assert context.default_branch == "main"
-        assert context.languages == ["python"]
+        # Should have repo coordinates
+        assert context.repo_owner == "unknown"
+        assert context.repo_name == "unknown-repo"
+        assert context.ref == "refs/heads/main"  # Default ref
 
     def test_fetch_context_deterministic_output(self) -> None:
         """fetch_context returns consistent results across calls."""
         driver = StubContextDriver()
-        repo = RepositoryPointer(owner="example-org", repo="example-repo")
+        repo = RepositoryPointer(owner="example-org", name="example-repo")
 
         context1 = driver.fetch_context(repo)
         context2 = driver.fetch_context(repo)
 
-        assert context1.default_branch == context2.default_branch
-        assert context1.languages == context2.languages
+        assert context1.repo_owner == context2.repo_owner
+        assert context1.repo_name == context2.repo_name
 
     def test_fetch_context_includes_repository_pointer(self) -> None:
         """fetch_context includes original repository in response."""
         driver = StubContextDriver()
-        repo = RepositoryPointer(owner="my-org", repo="my-repo", ref="feature-branch")
+        repo = RepositoryPointer(
+            owner="my-org", name="my-repo", ref="refs/heads/feature"
+        )
 
         context = driver.fetch_context(repo)
 
-        assert context.repository.owner == "my-org"
-        assert context.repository.repo == "my-repo"
-        assert context.repository.ref == "feature-branch"
+        assert context.repo_owner == "my-org"
+        assert context.repo_name == "my-repo"
+        assert context.ref == "refs/heads/feature"
 
 
 class TestGetContextDriverFactory:
@@ -137,7 +129,6 @@ class TestGetContextDriverFactory:
         mock_module = MagicMock()
         mock_module.GitHubContextDriver = mock_github_context_driver
 
-        import builtins
         original_import = builtins.__import__
 
         def mock_import(name, *args, **kwargs):
@@ -167,11 +158,11 @@ class TestGetContextDriverFactory:
 
 
 class TestDebugContextEndpoint:
-    """Tests for the /v1/debug/context endpoint."""
+    """Tests for the /v1/debug/context endpoint (AF v1.1)."""
 
     def test_debug_context_requires_auth(self, client: TestClient) -> None:
         """Debug endpoint requires authorization header."""
-        payload = {"owner": "test", "repo": "test-repo"}
+        payload = {"owner": "test", "name": "test-repo"}
         response = client.post("/v1/debug/context", json=payload)
 
         assert response.status_code == 401
@@ -181,7 +172,7 @@ class TestDebugContextEndpoint:
         self, client: TestClient
     ) -> None:
         """Debug endpoint rejects malformed authorization header."""
-        payload = {"owner": "test", "repo": "test-repo"}
+        payload = {"owner": "test", "name": "test-repo"}
         response = client.post(
             "/v1/debug/context",
             json=payload,
@@ -193,7 +184,7 @@ class TestDebugContextEndpoint:
 
     def test_debug_context_rejects_wrong_token(self, client: TestClient) -> None:
         """Debug endpoint rejects incorrect token."""
-        payload = {"owner": "test", "repo": "test-repo"}
+        payload = {"owner": "test", "name": "test-repo"}
         response = client.post(
             "/v1/debug/context",
             json=payload,
@@ -207,7 +198,7 @@ class TestDebugContextEndpoint:
         self, client: TestClient
     ) -> None:
         """Debug endpoint returns ProjectContext with valid auth."""
-        payload = {"owner": "test-owner", "repo": "test-repo"}
+        payload = {"owner": "test-owner", "name": "test-repo"}
         response = client.post(
             "/v1/debug/context",
             json=payload,
@@ -216,16 +207,14 @@ class TestDebugContextEndpoint:
 
         assert response.status_code == 200
         data = response.json()
-        assert data["repository"]["owner"] == "test-owner"
-        assert data["repository"]["repo"] == "test-repo"
-        assert data["default_branch"] == "develop"
-        assert data["languages"] == ["typescript", "rust"]
+        assert data["repo_owner"] == "test-owner"
+        assert data["repo_name"] == "test-repo"
 
     def test_debug_context_uses_default_for_unknown_repo(
         self, client: TestClient
     ) -> None:
         """Debug endpoint returns default context for unknown repository."""
-        payload = {"owner": "unknown", "repo": "unknown-repo"}
+        payload = {"owner": "unknown", "name": "unknown-repo"}
         response = client.post(
             "/v1/debug/context",
             json=payload,
@@ -234,12 +223,17 @@ class TestDebugContextEndpoint:
 
         assert response.status_code == 200
         data = response.json()
-        assert data["default_branch"] == "main"
-        assert data["languages"] == ["python"]
+        assert data["repo_owner"] == "unknown"
+        assert data["repo_name"] == "unknown-repo"
+        assert data["ref"] == "refs/heads/main"
 
     def test_debug_context_accepts_optional_ref(self, client: TestClient) -> None:
         """Debug endpoint accepts optional ref in repository pointer."""
-        payload = {"owner": "test-owner", "repo": "test-repo", "ref": "feature-branch"}
+        payload = {
+            "owner": "test-owner",
+            "name": "test-repo",
+            "ref": "refs/heads/feature",
+        }
         response = client.post(
             "/v1/debug/context",
             json=payload,
@@ -248,7 +242,7 @@ class TestDebugContextEndpoint:
 
         assert response.status_code == 200
         data = response.json()
-        assert data["repository"]["ref"] == "feature-branch"
+        assert data["ref"] == "refs/heads/feature"
 
     def test_debug_context_returns_structured_error_on_missing_fixture(
         self, client: TestClient
@@ -258,9 +252,11 @@ class TestDebugContextEndpoint:
         with patch.object(
             StubContextDriver,
             "_load_fixtures",
-            side_effect=FileNotFoundError("Mock context fixture file not found: mock_context.json"),
+            side_effect=FileNotFoundError(
+                "Mock context fixture file not found: mock_context.json"
+            ),
         ):
-            payload = {"owner": "test", "repo": "test-repo"}
+            payload = {"owner": "test", "name": "test-repo"}
             response = client.post(
                 "/v1/debug/context",
                 json=payload,
