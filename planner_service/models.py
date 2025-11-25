@@ -227,9 +227,9 @@ class ErrorResponse(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     error: ErrorDetail
-    request_id: Optional[UUID] = Field(
-        None,
-        description="Request ID if available",
+    request_id: UUID = Field(
+        ...,
+        description="Request ID (echoed from request or server-generated)",
     )
 
 
