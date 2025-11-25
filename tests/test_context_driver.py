@@ -249,3 +249,31 @@ class TestDebugContextEndpoint:
         assert response.status_code == 200
         data = response.json()
         assert data["repository"]["ref"] == "feature-branch"
+
+    def test_debug_context_returns_structured_error_on_missing_fixture(
+        self, client: TestClient
+    ) -> None:
+        """Debug endpoint returns structured error when fixture file is missing."""
+        from planner_service.context_driver import StubContextDriver
+
+        # Mock the fixture loading to raise FileNotFoundError
+        with patch.object(
+            StubContextDriver,
+            "_load_fixtures",
+            side_effect=FileNotFoundError("Mock context fixture file not found: mock_context.json"),
+        ):
+            payload = {"owner": "test", "repo": "test-repo"}
+            response = client.post(
+                "/v1/debug/context",
+                json=payload,
+                headers={"Authorization": "Bearer debug-token-stub"},
+            )
+
+            assert response.status_code == 500
+            data = response.json()
+            # Should have structured error with request_id but no run_id
+            assert "error" in data
+            assert data["error"]["code"] == "FIXTURE_NOT_FOUND"
+            assert "mock_context.json" in data["error"]["message"]
+            assert "request_id" in data
+            assert "run_id" not in data

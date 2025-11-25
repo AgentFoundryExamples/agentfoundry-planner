@@ -155,7 +155,7 @@ def _verify_debug_auth(authorization: str | None) -> None:
 async def debug_context(
     repository: RepositoryPointer,
     authorization: str | None = Header(None),
-) -> ProjectContext:
+) -> ProjectContext | JSONResponse:
     """Debug endpoint to fetch repository context.
 
     This endpoint uses the configured context driver to return
@@ -167,14 +167,38 @@ async def debug_context(
 
     Returns:
         ProjectContext for the specified repository.
+
+    Raises:
+        Returns structured error with request_id (no run_id) if fixtures missing.
     """
     _verify_debug_auth(authorization)
 
     logger = get_logger(__name__)
+    request_id = uuid4()
+
     logger.debug(
         "debug_context_request",
+        request_id=str(request_id),
         repository=f"{repository.owner}/{repository.repo}",
     )
 
     driver = get_context_driver()
-    return driver.fetch_context(repository)
+    try:
+        return driver.fetch_context(repository)
+    except FileNotFoundError as e:
+        logger.error(
+            "debug_context_fixture_missing",
+            request_id=str(request_id),
+            error=str(e),
+        )
+        error_response = ErrorResponse(
+            error=ErrorDetail(
+                code="FIXTURE_NOT_FOUND",
+                message=str(e),
+            ),
+            request_id=request_id,
+        )
+        return JSONResponse(
+            status_code=500,
+            content=error_response.model_dump(mode="json", exclude_none=True),
+        )
