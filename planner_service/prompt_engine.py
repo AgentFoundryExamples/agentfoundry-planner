@@ -20,6 +20,7 @@
 
 from typing import Protocol, runtime_checkable
 
+from planner_service import __version__
 from planner_service.logging import get_logger
 from planner_service.models import PlanningContext
 
@@ -42,6 +43,7 @@ class PromptEngine(Protocol):
         Returns:
             A dictionary containing the plan output with keys:
             - request_id: Unique identifier for this request
+            - plan_version: Version of the plan output schema
             - repository: Repository metadata (owner, name, ref)
             - status: Status of the plan generation ("success" or "failure")
             - prompt_preview: Preview of the prompt that would be sent (stub only)
@@ -72,7 +74,7 @@ class StubPromptEngine:
 
         Returns:
             A dictionary with deterministic output including request_id,
-            repository metadata, status, and a prompt preview.
+            plan_version, repository metadata, status, and a prompt preview.
         """
         # Use the request_id from the PlanningContext to maintain consistency
         request_id = str(ctx.request_id)
@@ -107,6 +109,7 @@ class StubPromptEngine:
 
         return {
             "request_id": request_id,
+            "plan_version": __version__,
             "repository": repository_metadata,
             "status": "success",
             "prompt_preview": prompt_preview,

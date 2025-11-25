@@ -82,9 +82,21 @@ class TestStubPromptEngine:
         result = engine.run(sample_planning_context)
 
         assert "request_id" in result
+        assert "plan_version" in result
         assert "repository" in result
         assert "status" in result
         assert "prompt_preview" in result
+
+    def test_run_returns_plan_version(
+        self, sample_planning_context: PlanningContext
+    ) -> None:
+        """run returns plan_version matching the package version."""
+        from planner_service import __version__
+
+        engine = StubPromptEngine()
+        result = engine.run(sample_planning_context)
+
+        assert result["plan_version"] == __version__
 
     def test_run_returns_success_status(
         self, sample_planning_context: PlanningContext

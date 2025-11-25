@@ -403,6 +403,7 @@ The stub engine returns a deterministic payload with the following structure:
 ```json
 {
   "request_id": "uuid-string",
+  "plan_version": "0.1.0",
   "repository": {
     "owner": "string",
     "name": "string",
@@ -414,6 +415,7 @@ The stub engine returns a deterministic payload with the following structure:
 ```
 
 - `request_id`: The request ID from PlanningContext (matches top-level response ID)
+- `plan_version`: Version of the plan output schema (matches package version)
 - `repository`: Repository metadata from the planning context (uses AF v1.1 field names)
 - `status`: Always "success" for stub (real engines may return "failure")
 - `prompt_preview`: Stub preview showing `{repo_owner}/{repo_name}: {purpose}` (does not expose real prompts)
