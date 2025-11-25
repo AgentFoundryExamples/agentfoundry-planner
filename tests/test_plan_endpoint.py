@@ -92,8 +92,8 @@ class TestPlanEndpointAuth:
 class TestPlanEndpointHappyPath:
     """Tests for successful /v1/plan requests."""
 
-    def test_plan_returns_completed_status(self, client: TestClient) -> None:
-        """Plan endpoint returns completed status when prompt engine succeeds."""
+    def test_plan_returns_ok_status(self, client: TestClient) -> None:
+        """Plan endpoint returns ok status when prompt engine succeeds."""
         payload = {
             "repository": {"owner": "test-owner", "name": "test-repo"},
             "user_input": _make_user_input(),
@@ -101,10 +101,10 @@ class TestPlanEndpointHappyPath:
         response = client.post("/v1/plan", json=payload)
         assert response.status_code == 200
         data = response.json()
-        assert data["status"] == "completed"
+        assert data["status"] == "ok"
 
     def test_plan_returns_payload_on_success(self, client: TestClient) -> None:
-        """Plan endpoint returns engine result in payload when completed."""
+        """Plan endpoint returns engine result in payload when ok."""
         payload = {
             "repository": {"owner": "test-owner", "name": "test-repo"},
             "user_input": _make_user_input(),
@@ -112,7 +112,7 @@ class TestPlanEndpointHappyPath:
         response = client.post("/v1/plan", json=payload)
         assert response.status_code == 200
         data = response.json()
-        assert data["status"] == "completed"
+        assert data["status"] == "ok"
         assert data["payload"] is not None
         # Verify payload contains engine result fields
         assert "status" in data["payload"]
@@ -252,10 +252,10 @@ class TestPlanEndpointPromptEngineFailure:
 class TestPlanEndpointPlanValidationFailure:
     """Tests for plan validation failures in /v1/plan endpoint."""
 
-    def test_plan_returns_5xx_on_validation_failure(
+    def test_plan_returns_422_on_validation_failure(
         self, client: TestClient
     ) -> None:
-        """Plan endpoint returns 500 when plan validation fails."""
+        """Plan endpoint returns 422 when plan validation fails."""
         from planner_service.plan_validator import PlanValidationFailure, StubPlanValidator
 
         with patch.object(
@@ -272,7 +272,7 @@ class TestPlanEndpointPlanValidationFailure:
             }
             response = client.post("/v1/plan", json=payload)
 
-            assert response.status_code == 500
+            assert response.status_code == 422
             data = response.json()
             assert "error" in data
             assert data["error"]["code"] == "MISSING_REQUEST_ID"
@@ -301,7 +301,7 @@ class TestPlanEndpointPlanValidationFailure:
             }
             response = client.post("/v1/plan", json=payload)
 
-            assert response.status_code == 500
+            assert response.status_code == 422
             data = response.json()
             assert data["request_id"] == client_request_id
             assert data["error"]["code"] == "INVALID_PAYLOAD_TYPE"
@@ -572,3 +572,46 @@ class TestGetCurrentUserDependency:
         auth = get_current_user(authorization="Bearer my-token")
         assert auth.user_id == "stub-user"
         assert auth.token == "my-token"
+
+
+class TestPlanValidationLogging:
+    """Tests for structured logging on plan validation failures."""
+
+    def test_validation_failure_logs_structured_event(
+        self, client: TestClient
+    ) -> None:
+        """Plan endpoint logs plan.validation.failed event on validation failure."""
+        from planner_service.plan_validator import PlanValidationFailure, StubPlanValidator
+
+        with (
+            patch.object(
+                StubPlanValidator,
+                "validate",
+                side_effect=PlanValidationFailure(
+                    code="MISSING_REQUEST_ID",
+                    message="Payload missing required key: request_id",
+                ),
+            ),
+            patch("planner_service.api.get_logger") as mock_get_logger,
+        ):
+            mock_logger = mock_get_logger.return_value
+            payload = {
+                "repository": {"owner": "test-owner", "name": "test-repo"},
+                "user_input": _make_user_input(),
+            }
+            response = client.post("/v1/plan", json=payload)
+
+            assert response.status_code == 422
+            # Verify that warning was called with plan.validation.failed event
+            warning_calls = mock_logger.warning.call_args_list
+            validation_failed_call = None
+            for call in warning_calls:
+                args, kwargs = call
+                if args and args[0] == "plan.validation.failed":
+                    validation_failed_call = kwargs
+                    break
+
+            assert validation_failed_call is not None, "plan.validation.failed log event not found"
+            assert "request_id" in validation_failed_call
+            assert validation_failed_call["validator_name"] == "StubPlanValidator"
+            assert validation_failed_call["error_code"] == "MISSING_REQUEST_ID"

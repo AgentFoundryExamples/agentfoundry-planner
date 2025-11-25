@@ -65,8 +65,8 @@ class TestHealthEndpoint:
 class TestPlanEndpoint:
     """Tests for the /v1/plan endpoint (AF v1.1)."""
 
-    def test_plan_returns_pending_status(self, client: TestClient) -> None:
-        """Plan endpoint returns completed status for valid request."""
+    def test_plan_returns_ok_status(self, client: TestClient) -> None:
+        """Plan endpoint returns ok status for valid request."""
         payload = {
             "repository": {
                 "owner": "test-owner",
@@ -77,7 +77,7 @@ class TestPlanEndpoint:
         response = client.post("/v1/plan", json=payload)
         assert response.status_code == 200
         data = response.json()
-        assert data["status"] == "completed"
+        assert data["status"] == "ok"
 
     def test_plan_returns_request_and_run_ids(self, client: TestClient) -> None:
         """Plan endpoint returns valid request_id and run_id (mirrored in sync flow)."""
