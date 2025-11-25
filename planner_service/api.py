@@ -41,6 +41,7 @@ from planner_service.models import (
     ProjectContext,
     RepositoryPointer,
 )
+from planner_service.plan_validator import PlanValidationFailure, get_plan_validator
 from planner_service.prompt_engine import get_prompt_engine
 
 
@@ -271,11 +272,40 @@ async def create_plan(
             content=error_response.model_dump(mode="json", exclude_none=True),
         )
 
-    # Step 4: Generate run_id (mirrors request_id for synchronous flow)
+    # Step 4: Validate prompt engine output
+    try:
+        validator = get_plan_validator()
+        validated_payload = validator.validate(planning_context, engine_result)
+    except PlanValidationFailure as e:
+        logger.error(
+            "plan_request_validation_failure",
+            request_id=str(request_id),
+            repository=repo_str,
+            repo_owner=request.repository.owner,
+            repo_name=request.repository.name,
+            repo_ref=request.repository.ref,
+            user_id=auth.user_id,
+            error_code=e.code,
+            error=e.message,
+            outcome="failure",
+        )
+        error_response = ErrorResponse(
+            error=ErrorDetail(
+                code=e.code,
+                message=e.message,
+            ),
+            request_id=request_id,
+        )
+        return JSONResponse(
+            status_code=500,
+            content=error_response.model_dump(mode="json", exclude_none=True),
+        )
+
+    # Step 5: Generate run_id (mirrors request_id for synchronous flow)
     run_id = request_id
 
     # Determine status from engine result
-    engine_status = engine_result.get("status", "pending")
+    engine_status = validated_payload.get("status", "pending")
     status = "completed" if engine_status == "success" else engine_status
 
     # Determine outcome based on the computed status
@@ -298,7 +328,7 @@ async def create_plan(
         request_id=request_id,
         run_id=run_id,
         status=status,
-        payload=engine_result if status == "completed" else None,
+        payload=validated_payload if status == "completed" else None,
     )
 
 

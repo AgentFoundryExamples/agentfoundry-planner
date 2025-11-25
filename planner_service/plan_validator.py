@@ -25,6 +25,7 @@ sent to clients.
 
 from typing import Protocol, runtime_checkable
 
+from planner_service.logging import get_logger
 from planner_service.models import PlanningContext
 
 
@@ -133,3 +134,29 @@ class StubPlanValidator:
             )
 
         return candidate_payload
+
+
+def get_plan_validator() -> PlanValidator:
+    """Factory function to get the appropriate plan validator.
+
+    Attempts to import and use a private backend (af_plan_validator)
+    if available, falling back to StubPlanValidator on ImportError.
+
+    Returns:
+        An instance of PlanValidator (either private backend or stub).
+    """
+    logger = get_logger(__name__)
+
+    try:
+        # Attempt to import private backend
+        from af_plan_validator import PlanValidatorBackend  # type: ignore[import-not-found]
+
+        logger.info("plan_validator_selected", validator="af_plan_validator")
+        return PlanValidatorBackend()
+    except ImportError:
+        logger.info(
+            "plan_validator_fallback",
+            validator="stub",
+            reason="af_plan_validator not available",
+        )
+        return StubPlanValidator()

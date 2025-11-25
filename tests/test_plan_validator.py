@@ -18,6 +18,8 @@
 # ============================================================
 """Tests for plan validator abstraction and stub implementation (AF v1.1)."""
 
+import builtins
+from unittest.mock import MagicMock, patch
 from uuid import uuid4
 
 import pytest
@@ -31,6 +33,7 @@ from planner_service.plan_validator import (
     PlanValidationFailure,
     PlanValidator,
     StubPlanValidator,
+    get_plan_validator,
 )
 
 
@@ -335,3 +338,77 @@ class TestPlanValidationFailureMetadata:
         exc = PlanValidationFailure(code="TEST", message="Original message")
 
         assert exc.args == ("Original message",)
+
+
+class TestGetPlanValidatorFactory:
+    """Tests for the get_plan_validator factory function."""
+
+    def test_returns_stub_validator_when_private_unavailable(self) -> None:
+        """Factory returns StubPlanValidator when af_plan_validator is not available."""
+        validator = get_plan_validator()
+
+        assert isinstance(validator, StubPlanValidator)
+
+    def test_uses_private_backend_when_available(self) -> None:
+        """Factory uses private backend when successfully imported."""
+        mock_validator_instance = MagicMock()
+        mock_plan_validator_backend = MagicMock(return_value=mock_validator_instance)
+
+        # Create a mock module with the expected class
+        mock_module = MagicMock()
+        mock_module.PlanValidatorBackend = mock_plan_validator_backend
+
+        original_import = builtins.__import__
+
+        def mock_import(name, *args, **kwargs):
+            if name == "af_plan_validator":
+                return mock_module
+            return original_import(name, *args, **kwargs)
+
+        with patch.object(builtins, "__import__", side_effect=mock_import):
+            validator = get_plan_validator()
+            assert validator is mock_validator_instance
+            mock_plan_validator_backend.assert_called_once()
+
+    def test_logs_fallback_on_import_error(self) -> None:
+        """Factory logs when falling back to stub validator."""
+        with patch("planner_service.plan_validator.get_logger") as mock_get_logger:
+            mock_logger = MagicMock()
+            mock_get_logger.return_value = mock_logger
+
+            get_plan_validator()
+
+            mock_logger.info.assert_called_with(
+                "plan_validator_fallback",
+                validator="stub",
+                reason="af_plan_validator not available",
+            )
+
+    def test_logs_when_private_backend_selected(self) -> None:
+        """Factory logs when private backend is successfully selected."""
+        mock_validator_instance = MagicMock()
+        mock_plan_validator_backend = MagicMock(return_value=mock_validator_instance)
+
+        mock_module = MagicMock()
+        mock_module.PlanValidatorBackend = mock_plan_validator_backend
+
+        original_import = builtins.__import__
+
+        def mock_import(name, *args, **kwargs):
+            if name == "af_plan_validator":
+                return mock_module
+            return original_import(name, *args, **kwargs)
+
+        with (
+            patch.object(builtins, "__import__", side_effect=mock_import),
+            patch("planner_service.plan_validator.get_logger") as mock_get_logger,
+        ):
+            mock_logger = MagicMock()
+            mock_get_logger.return_value = mock_logger
+
+            get_plan_validator()
+
+            mock_logger.info.assert_called_with(
+                "plan_validator_selected",
+                validator="af_plan_validator",
+            )

@@ -249,6 +249,64 @@ class TestPlanEndpointPromptEngineFailure:
             assert data["request_id"] == client_request_id
 
 
+class TestPlanEndpointPlanValidationFailure:
+    """Tests for plan validation failures in /v1/plan endpoint."""
+
+    def test_plan_returns_5xx_on_validation_failure(
+        self, client: TestClient
+    ) -> None:
+        """Plan endpoint returns 500 when plan validation fails."""
+        from planner_service.plan_validator import PlanValidationFailure, StubPlanValidator
+
+        with patch.object(
+            StubPlanValidator,
+            "validate",
+            side_effect=PlanValidationFailure(
+                code="MISSING_REQUEST_ID",
+                message="Payload missing required key: request_id",
+            ),
+        ):
+            payload = {
+                "repository": {"owner": "test-owner", "name": "test-repo"},
+                "user_input": _make_user_input(),
+            }
+            response = client.post("/v1/plan", json=payload)
+
+            assert response.status_code == 500
+            data = response.json()
+            assert "error" in data
+            assert data["error"]["code"] == "MISSING_REQUEST_ID"
+            assert "request_id" in data
+            assert "run_id" not in data  # No run_id on error
+
+    def test_plan_preserves_request_id_on_validation_failure(
+        self, client: TestClient
+    ) -> None:
+        """Plan endpoint preserves client request_id on validation failure."""
+        from planner_service.plan_validator import PlanValidationFailure, StubPlanValidator
+
+        client_request_id = "550e8400-e29b-41d4-a716-446655440000"
+        with patch.object(
+            StubPlanValidator,
+            "validate",
+            side_effect=PlanValidationFailure(
+                code="INVALID_PAYLOAD_TYPE",
+                message="Expected dict payload, got NoneType",
+            ),
+        ):
+            payload = {
+                "repository": {"owner": "test-owner", "name": "test-repo"},
+                "user_input": _make_user_input(),
+                "request_id": client_request_id,
+            }
+            response = client.post("/v1/plan", json=payload)
+
+            assert response.status_code == 500
+            data = response.json()
+            assert data["request_id"] == client_request_id
+            assert data["error"]["code"] == "INVALID_PAYLOAD_TYPE"
+
+
 class TestPlanEndpointValidation:
     """Tests for request validation in /v1/plan endpoint (AF v1.1)."""
 
