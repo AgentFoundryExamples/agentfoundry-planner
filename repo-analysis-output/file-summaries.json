@@ -112,7 +112,7 @@
       "role": "implementation",
       "role_justification": "general implementation file (default classification)",
       "metrics": {
-        "size_bytes": 5161,
+        "size_bytes": 5273,
         "loc": 100,
         "todo_count": 0,
         "declaration_count": 3
@@ -262,8 +262,8 @@
       "role": "implementation",
       "role_justification": "general implementation file (default classification)",
       "metrics": {
-        "size_bytes": 5258,
-        "loc": 93,
+        "size_bytes": 6131,
+        "loc": 113,
         "todo_count": 0,
         "declaration_count": 3
       },
@@ -356,8 +356,8 @@
       "role": "test",
       "role_justification": "filename starts with 'test_'",
       "metrics": {
-        "size_bytes": 10469,
-        "loc": 196,
+        "size_bytes": 11755,
+        "loc": 216,
         "todo_count": 0,
         "declaration_count": 5
       },
@@ -376,6 +376,7 @@
         "external": {
           "stdlib": [
             "builtins",
+            "json",
             "sys",
             "unittest.mock.MagicMock",
             "unittest.mock.patch"
@@ -476,10 +477,10 @@
       "role": "test",
       "role_justification": "filename starts with 'test_'",
       "metrics": {
-        "size_bytes": 10949,
-        "loc": 226,
+        "size_bytes": 14722,
+        "loc": 316,
         "todo_count": 0,
-        "declaration_count": 5
+        "declaration_count": 6
       },
       "structure": {
         "declarations": [
@@ -487,7 +488,8 @@
           "class TestPromptEngineProtocol",
           "class TestStubPromptEngine",
           "class TestGetPromptEngineFactory",
-          "class TestMultipleProjectContextHandling"
+          "class TestMultipleProjectContextHandling",
+          "class TestStubPromptEngineMirroredData"
         ]
       },
       "dependencies": {

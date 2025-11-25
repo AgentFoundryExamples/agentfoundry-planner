@@ -55,7 +55,7 @@ Total files: 14
 **Language:** Python  
 **Role:** implementation  
 **Role Justification:** general implementation file (default classification)  
-**Size:** 5.04 KB  
+**Size:** 5.15 KB  
 **LOC:** 100  
 **TODOs/FIXMEs:** 0  
 **Declarations:** 3  
@@ -129,8 +129,8 @@ Total files: 14
 **Language:** Python  
 **Role:** implementation  
 **Role Justification:** general implementation file (default classification)  
-**Size:** 5.13 KB  
-**LOC:** 93  
+**Size:** 5.99 KB  
+**LOC:** 113  
 **TODOs/FIXMEs:** 0  
 **Declarations:** 3  
 **Top-level declarations:**
@@ -173,8 +173,8 @@ Total files: 14
 **Language:** Python  
 **Role:** test  
 **Role Justification:** filename starts with 'test_'  
-**Size:** 10.22 KB  
-**LOC:** 196  
+**Size:** 11.48 KB  
+**LOC:** 216  
 **TODOs/FIXMEs:** 0  
 **Declarations:** 5  
 **Top-level declarations:**
@@ -184,7 +184,7 @@ Total files: 14
   - class TestGetContextDriverFactory
   - class TestDebugContextEndpoint
 **External Dependencies:**
-  - **Stdlib:** `builtins`, `sys`, `unittest.mock.MagicMock`, `unittest.mock.patch`
+  - **Stdlib:** `builtins`, `json`, `sys`, `unittest.mock.MagicMock`, `unittest.mock.patch`
   - **Third-party:** `fastapi.testclient.TestClient`, `pytest`
 
 ## tests/test_plan_endpoint.py
@@ -236,16 +236,17 @@ Total files: 14
 **Language:** Python  
 **Role:** test  
 **Role Justification:** filename starts with 'test_'  
-**Size:** 10.69 KB  
-**LOC:** 226  
+**Size:** 14.38 KB  
+**LOC:** 316  
 **TODOs/FIXMEs:** 0  
-**Declarations:** 5  
+**Declarations:** 6  
 **Top-level declarations:**
   - function sample_planning_context
   - class TestPromptEngineProtocol
   - class TestStubPromptEngine
   - class TestGetPromptEngineFactory
   - class TestMultipleProjectContextHandling
+  - class TestStubPromptEngineMirroredData
 **External Dependencies:**
   - **Stdlib:** `builtins`, `unittest.mock.MagicMock`, `unittest.mock.patch`, `uuid.uuid4`
   - **Third-party:** `pytest`

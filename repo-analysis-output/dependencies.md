@@ -7,7 +7,7 @@ Includes classification of external dependencies as stdlib vs third-party.
 ## Statistics
 
 - **Total files**: 14
-- **Intra-repo dependencies**: 31
+- **Intra-repo dependencies**: 29
 - **External stdlib dependencies**: 15
 - **External third-party dependencies**: 19
 
@@ -61,22 +61,22 @@ Total: 19 unique packages
 
 - `planner_service/models.py` (8 dependents)
 - `planner_service/logging.py` (6 dependents)
-- `planner_service/__init__.py` (3 dependents)
 - `planner_service/context_driver.py` (3 dependents)
 - `planner_service/plan_validator.py` (3 dependents)
 - `planner_service/prompt_engine.py` (3 dependents)
 - `planner_service/api.py` (3 dependents)
 - `planner_service/auth.py` (2 dependents)
+- `planner_service/__init__.py` (1 dependents)
 
 ## Files with Most Dependencies (Intra-Repo)
 
 - `planner_service/api.py` (7 dependencies)
 - `tests/test_plan_endpoint.py` (5 dependencies)
-- `planner_service/prompt_engine.py` (3 dependencies)
 - `tests/test_app.py` (3 dependencies)
 - `tests/test_context_driver.py` (3 dependencies)
-- `tests/test_prompt_engine.py` (3 dependencies)
 - `planner_service/context_driver.py` (2 dependencies)
 - `planner_service/plan_validator.py` (2 dependencies)
+- `planner_service/prompt_engine.py` (2 dependencies)
 - `tests/test_plan_validator.py` (2 dependencies)
+- `tests/test_prompt_engine.py` (2 dependencies)
 - `planner_service/auth.py` (1 dependencies)

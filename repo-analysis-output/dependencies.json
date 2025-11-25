@@ -156,6 +156,7 @@
       "external_dependencies": {
         "stdlib": [
           "builtins",
+          "json",
           "sys",
           "unittest.mock.MagicMock",
           "unittest.mock.patch"
@@ -265,10 +266,6 @@
     },
     {
       "source": "planner_service/prompt_engine.py",
-      "target": "planner_service/__init__.py"
-    },
-    {
-      "source": "planner_service/prompt_engine.py",
       "target": "planner_service/logging.py"
     },
     {
@@ -326,10 +323,6 @@
     {
       "source": "tests/test_plan_validator.py",
       "target": "planner_service/plan_validator.py"
-    },
-    {
-      "source": "tests/test_prompt_engine.py",
-      "target": "planner_service/__init__.py"
     },
     {
       "source": "tests/test_prompt_engine.py",
