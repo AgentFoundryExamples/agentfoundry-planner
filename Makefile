@@ -32,7 +32,7 @@ help:
 	@echo "  help        Show this help message"
 	@echo "  install     Install package dependencies"
 	@echo "  install-dev Install package with dev dependencies"
-	@echo "  lint        Run linting with ruff (if available)"
+	@echo "  lint        Run linting with ruff"
 	@echo "  test        Run tests with pytest"
 	@echo "  run         Start the development server with uvicorn"
 	@echo "  clean       Remove build artifacts and cache files"
@@ -69,18 +69,10 @@ install-dev: $(VENV)/bin/activate
 	$(PIP) install -e ".[dev]"
 	@echo "Dev installation complete. Activate with: source $(VENV)/bin/activate"
 
-# Run linting with ruff (if available)
-lint: $(VENV)/bin/activate
-	@if [ -f "$(RUFF)" ]; then \
-		echo "Running ruff linter..."; \
-		$(RUFF) check .; \
-	elif command -v ruff > /dev/null 2>&1; then \
-		echo "Running system ruff linter..."; \
-		ruff check .; \
-	else \
-		echo "Ruff not installed. Install with: pip install ruff"; \
-		echo "Skipping lint..."; \
-	fi
+# Run linting with ruff (depends on install-dev to ensure ruff is available)
+lint: install-dev
+	@echo "Running ruff linter..."
+	$(RUFF) check .
 
 # Run tests with pytest (depends on install-dev to ensure pytest is available)
 test: install-dev
