@@ -88,10 +88,10 @@ class UserInput(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    purpose: str = Field(
+    purpose: StrictStr = Field(
         ..., description="The purpose or goal of the planning request"
     )
-    vision: str = Field(
+    vision: StrictStr = Field(
         ..., description="The desired end state or vision for the project"
     )
     must: list[StrictStr] = Field(

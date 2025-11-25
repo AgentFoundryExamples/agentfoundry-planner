@@ -414,6 +414,36 @@ class TestPlanEndpointValidation:
         response = client.post("/v1/plan", json=payload)
         assert response.status_code == 422
 
+    def test_plan_rejects_non_string_purpose_vision(self, client: TestClient) -> None:
+        """Plan endpoint rejects non-string purpose/vision (strict typing)."""
+        # Test non-string purpose
+        payload = {
+            "repository": {"owner": "test-owner", "name": "test-repo"},
+            "user_input": {
+                "purpose": 123,  # Non-string should fail with StrictStr
+                "vision": "Test vision",
+                "must": ["Required"],
+                "dont": ["Avoid this"],
+                "nice": ["Be fast"],
+            },
+        }
+        response = client.post("/v1/plan", json=payload)
+        assert response.status_code == 422
+
+        # Test non-string vision
+        payload = {
+            "repository": {"owner": "test-owner", "name": "test-repo"},
+            "user_input": {
+                "purpose": "Test purpose",
+                "vision": True,  # Non-string should fail with StrictStr
+                "must": ["Required"],
+                "dont": ["Avoid this"],
+                "nice": ["Be fast"],
+            },
+        }
+        response = client.post("/v1/plan", json=payload)
+        assert response.status_code == 422
+
 
 class TestHealthEndpoints:
     """Tests for health check endpoints."""
